@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capturador de audio</title>
+<style>
+  :root{--bg:#0a0a0c; --panel:#141417; --panel2:#1c1c20; --line:#2b2b31; --ink:#f3efe6; --muted:#9b978d; --wave:#d9a441; --sel:#6bd38a; --danger:#ff6b6b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;line-height:1.5}
+  main{max-width:980px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-size:1.9rem;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:62ch}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  h2{font-size:1.05rem;margin:0 0 12px;font-weight:700}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button,.filebtn{font:inherit;font-weight:600;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:10px 16px;cursor:pointer}
+  button:hover,.filebtn:hover{border-color:var(--wave)}
+  button:focus-visible,.filebtn:focus-within,input:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+  .primary{background:var(--wave);color:#2a1f05;border-color:var(--wave)}
+  .rec{background:var(--danger);color:#2b0a06;border-color:var(--danger)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .filebtn input{position:absolute;opacity:0;width:1px;height:1px}
+  .filebtn{position:relative;display:inline-block}
+  .hint{color:var(--muted);font-size:.92rem;margin:12px 0 0}
+  #status{margin-top:10px;font-weight:600;min-height:1.5em}
+  .wavewrap{position:relative;background:#0e0e11;border:1px solid var(--line);border-radius:10px;overflow:hidden;touch-action:none}
+  canvas{display:block;width:100%;height:210px;cursor:crosshair}
+  .times{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem;margin-top:8px;font-variant-numeric:tabular-nums}
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:16px}
+  label.ctl{display:block;font-size:.95rem}
+  label.ctl span{display:flex;justify-content:space-between;margin-bottom:4px}
+  label.ctl output{color:var(--wave);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--wave)}
+  .check{display:flex;gap:8px;align-items:center}
+  .check input{width:18px;height:18px;accent-color:var(--wave)}
+  .bank{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .bank li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .bank input[type=text]{flex:1;min-width:120px;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--ink);font:inherit;padding:6px}
+  .bank input[type=text]:hover{border-color:var(--line)}
+  .bank small{color:var(--muted);font-variant-numeric:tabular-nums}
+  .bank button{padding:6px 12px}
+  .empty{color:var(--muted);margin:0}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Tema: mismo look de Splits y Contratos (solo aspecto, no toca el funcionamiento) ===== */
+body{font-family:"Helvetica Neue",Arial,sans-serif}
+h1{font-size:clamp(36px,7vw,64px);line-height:.95;letter-spacing:-.045em;font-weight:800;margin-bottom:10px}
+h2{font-weight:700;letter-spacing:-.02em}
+.panel{border-radius:14px}
+button,.filebtn{border-radius:8px}
+.wavewrap,.bank li{border-radius:10px}
+button:focus-visible,.filebtn:focus-within,input:focus-visible{outline:2px solid var(--wave);outline-offset:2px}
+
+
+/* ===== Pestañas y grabador de ideas y reuniones (el resto del diseño no cambia) ===== */
+.tabs{display:flex;gap:8px;margin:0 0 16px;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap}
+.tab{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.tab[aria-selected=true]{background:var(--wave);color:#2a1f05;border-color:var(--wave)}
+.sub{margin-bottom:16px}
+.fld{display:block;font-size:.92rem;color:var(--muted)}
+.fld input,.fld select,.fld textarea{display:block;width:100%;margin-top:4px;font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px}
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+fieldset.src{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0 0 12px}
+fieldset.src legend{padding:0 6px;color:var(--muted);font-size:.9rem}
+.chip{display:flex;gap:8px;align-items:flex-start;padding:7px 4px;cursor:pointer}
+.chip input{margin-top:5px;accent-color:var(--wave)}
+.chip small{color:var(--muted);display:block}
+.inl{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-size:.92rem}
+.inl select{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px}
+.recbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0 6px}
+.rtime{font-variant-numeric:tabular-nums;font-size:1.6rem;font-weight:800;min-width:5.2ch}
+.rtime.on{color:var(--danger)}
+#rMeter{width:160px;height:16px;border:1px solid var(--line);border-radius:8px;background:#0e0e11}
+#rStatus{min-height:1.5em;font-weight:600;margin-top:6px}
+.live{margin-top:10px;background:#0e0e11;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.95rem;max-height:130px;overflow:auto;white-space:pre-wrap}
+.live i{color:var(--muted)}
+.marks{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.marks li{display:flex;gap:8px;align-items:center}
+.marks b{font-variant-numeric:tabular-nums;color:var(--wave);min-width:4.5ch}
+.marks input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;padding:6px 8px}
+.rl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.rc{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.rch{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rch input.rt{flex:1;min-width:180px;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--ink);font:inherit;font-weight:700;padding:6px}
+.rch input.rt:hover{border-color:var(--line)}
+.badge{font-size:.76rem;border:1px solid var(--line);border-radius:20px;padding:1px 9px;color:var(--wave)}
+.rc small{color:var(--muted);font-variant-numeric:tabular-nums}
+.rc .row{margin-top:8px}.rc button{padding:6px 12px}
+.rc audio{width:100%;margin:10px 0;color-scheme:dark}
+.rc textarea{min-height:90px;resize:vertical}
+.mk{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.mk button{padding:4px 10px;font-weight:500}
+.danger{color:var(--danger)}
+.tools2{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:6px}
+@media(max-width:640px){.tools2{grid-template-columns:1fr}}
+details.panel summary{cursor:pointer;font-weight:700}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(540px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog ul{padding-left:20px}dialog li{margin:6px 0}
+.dfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<main>
+  <h1>Capturador de audio</h1>
+  <p class="sub">Graba tus ideas y reuniones con el micrófono, el audio de una pestaña o ambos, con marcadores, transcripción y resumen. Y en la otra pestaña, captura samples y edítalos para tu DAW.</p>
+
+  <div class="tabs" role="tablist" aria-label="Modo">
+    <button class="tab" id="tabRec" role="tab" aria-selected="true">Ideas y reuniones</button>
+    <button class="tab" id="tabSmp" role="tab" aria-selected="false">Samples (captura de pestaña)</button>
+  </div>
+
+  <div id="viewRec">
+    <section class="panel" aria-labelledby="r1">
+      <h2 id="r1">1. Graba</h2>
+      <div class="g2">
+        <label class="fld">Título (opcional)<input id="rTitle" placeholder="Ej: Idea del estribillo, Reunión con el productor"></label>
+        <label class="fld">Tipo<select id="rType"><option>Idea</option><option>Reunión creativa</option><option>Reunión organizacional</option><option>Entrevista</option><option>Otro</option></select></label>
+      </div>
+      <fieldset class="src"><legend>¿Qué quieres grabar?</legend>
+        <label class="chip"><input type="radio" name="rsrc" value="mic" checked><span>Micrófono <small>Ideas, ensayos y reuniones presenciales.</small></span></label>
+        <label class="chip"><input type="radio" name="rsrc" value="both"><span>Micrófono + pestaña <small>Reunión por Meet, Zoom o Teams web: tu voz y la de los demás. Mejor con audífonos.</small></span></label>
+        <label class="chip"><input type="radio" name="rsrc" value="tab"><span>Solo el audio de una pestaña <small>Un video, una clase o una llamada que escuchas en el navegador.</small></span></label>
+      </fieldset>
+      <div class="row">
+        <label class="inl">Micrófono <select id="rDev"><option value="">Predeterminado</option></select></label>
+        <label class="inl">Calidad <select id="rQ"><option value="64000">Voz (ocupa menos)</option><option value="96000" selected>Estándar</option><option value="192000">Alta (música)</option></select></label>
+        <label class="check"><input type="checkbox" id="rNS" checked><span>Reducir ruido y eco</span></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="check"><input type="checkbox" id="rSR"><span>Transcribir mientras grabo</span></label>
+        <select id="rLang" aria-label="Idioma" style="font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px"><option value="es-CO">Español (Colombia)</option><option value="es-MX">Español (México)</option><option value="es-ES">Español (España)</option><option value="en-US">English</option></select>
+      </div>
+      <p class="hint" id="rSRhint" style="margin-top:6px">La transcripción en vivo solo escucha el micrófono y usa el servicio de voz de tu navegador (Chrome o Edge), que necesita internet. El audio grabado se queda en tu computador.</p>
+      <div class="recbar">
+        <button id="rGo" class="rec">● Grabar</button>
+        <button id="rPause" disabled>Pausar</button>
+        <button id="rStop" disabled>Detener y guardar</button>
+        <button id="rMark" disabled>Marcar momento (M)</button>
+        <span class="rtime" id="rTime" aria-live="off">00:00</span>
+        <canvas id="rMeter" width="160" height="16" aria-label="Nivel de sonido"></canvas>
+      </div>
+      <div id="rStatus" role="status">Listo para grabar.</div>
+      <div id="rLive" class="live" hidden></div>
+      <ul id="rMarks" class="marks" aria-label="Momentos marcados"></ul>
+      <p class="hint">Si se cierra la página o se va la luz, lo grabado hasta ese momento se recupera solo la próxima vez que abras esta página.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="r2">
+      <h2 id="r2">2. Mis grabaciones</h2>
+      <div class="tools2">
+        <input id="rSearch" type="search" placeholder="Buscar en títulos, notas y transcripciones" aria-label="Buscar" style="font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px">
+        <select id="rFilter" aria-label="Filtrar por tipo" style="font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px"><option value="">Todos los tipos</option><option>Idea</option><option>Reunión creativa</option><option>Reunión organizacional</option><option>Entrevista</option><option>Otro</option></select>
+      </div>
+      <p class="hint" id="rUse" style="margin:10px 0 0"></p>
+      <p class="empty" id="rEmpty" style="margin-top:10px">Aún no has grabado nada.</p>
+      <ul id="rList" class="rl"></ul>
+      <p class="hint">Tus grabaciones se guardan solo en este navegador. Para no perderlas, descarga el «Paquete .zip» de las importantes (trae el audio y un resumen en texto) o conecta una carpeta en la pestaña «Samples» para que se copien solas.</p>
+    </section>
+
+    <details class="panel" id="aiSet">
+      <summary>Ajustes del resumen con IA (opcional)</summary>
+      <p class="hint">«Resumir con IA» envía el texto (transcripción, notas y marcadores, no el audio) a Claude y te devuelve resumen, ideas, decisiones y tareas. Necesita tu propia clave de la API.</p>
+      <div class="g2">
+        <label class="fld">Clave de la API (se guarda solo en este navegador)<input id="aiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+        <label class="fld">Modelo<select id="aiModel"><option value="claude-haiku-5-5">Haiku 5.5 (rápido y barato)</option><option value="claude-sonnet-5-5">Sonnet 5.5 (más preciso)</option></select></label>
+      </div>
+    </details>
+  </div>
+
+  <dialog id="dlgRec" aria-labelledby="dlgT">
+    <h2 id="dlgT">Antes de grabar</h2>
+    <ul>
+      <li>Avisa a todas las personas que participan que vas a grabar y consigue su consentimiento.</li>
+      <li>Las reglas sobre grabar conversaciones y compartirlas cambian según el país. Tú eres responsable del uso que le des.</li>
+      <li>Mientras grabas, la página muestra el tiempo corriendo y no hay forma de grabar en secreto: el navegador también lo indica en la pestaña.</li>
+    </ul>
+    <label class="check"><input type="checkbox" id="rcChk"><span>Entiendo y acepto</span></label>
+    <div class="dfoot"><button id="rcNo" type="button">Cancelar</button><button id="rcOk" type="button" class="primary">Continuar</button></div>
+  </dialog>
+
+  <div id="viewSamples" hidden>
+
+  <section class="panel" aria-labelledby="t1">
+    <h2 id="t1">1. Trae el audio</h2>
+    <div class="row">
+      <button id="btnRec" class="rec">Capturar audio de una pestaña</button>
+      <button id="btnStop" disabled>Detener captura</button>
+      <label class="filebtn">Abrir un archivo de audio
+        <input id="file" type="file" accept="audio/*">
+      </label>
+    </div>
+    <div id="status" role="status">Listo. Abre primero el video o la canción en otra pestaña.</div>
+    <p class="hint">Al pulsar "Capturar", el navegador te pregunta qué compartir: elige <b>Pestaña de Chrome</b>, selecciona la pestaña donde suena el sample y activa <b>"Compartir audio de la pestaña"</b>. Luego dale play y detén la captura cuando termine el fragmento. Se graba sin compresión y sin filtros del navegador. Funciona en Chrome y Edge en computador. Para mejor calidad, sube el volumen de la pestaña al máximo y busca la fuente en la mejor calidad que ofrezca (en YouTube, el video en 1080p o más suele traer mejor audio).</p>
+  </section>
+
+  <section class="panel" aria-labelledby="t2">
+    <h2 id="t2">2. Elige el fragmento</h2>
+    <div class="wavewrap"><canvas id="wave" aria-label="Forma de onda: arrastra para elegir el fragmento"></canvas></div>
+    <div class="times"><span id="tSel">Fragmento: —</span><span id="tTot">Total: —</span></div>
+    <p class="hint">Arrastra sobre la onda para marcar el fragmento. Un clic simple selecciona todo. La barra espaciadora reproduce o detiene.</p>
+
+    <div class="controls">
+      <label class="ctl"><span>Velocidad y tono (estilo cinta) <output id="oSemi">0 st</output></span>
+        <input id="semi" type="range" min="-12" max="12" step="0.5" value="0"></label>
+      <label class="ctl"><span>Entrada gradual <output id="oFi">0 ms</output></span>
+        <input id="fi" type="range" min="0" max="500" step="5" value="0"></label>
+      <label class="ctl"><span>Salida gradual <output id="oFo">0 ms</output></span>
+        <input id="fo" type="range" min="0" max="500" step="5" value="0"></label>
+      <label class="ctl"><span>Volumen <output id="oVol">100%</output></span>
+        <input id="vol" type="range" min="10" max="150" step="1" value="100"></label>
+      <div class="check"><input id="rev" type="checkbox"><label for="rev">Invertir (al revés)</label></div>
+      <div class="check"><input id="norm" type="checkbox"><label for="norm">Normalizar (subir al máximo sin saturar)</label></div>
+      <div class="check"><input id="loop" type="checkbox"><label for="loop">Repetir en bucle</label></div>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <button id="btnPlay" class="primary" disabled>Reproducir fragmento</button>
+      <button id="btnSave" disabled>Guardar en mi banco</button>
+      <button id="btnDl" disabled>Descargar WAV</button>
+      <label class="check" for="bits" style="gap:6px">Calidad del WAV
+        <select id="bits" style="font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px">
+          <option value="24" selected>24 bits</option><option value="16">16 bits</option>
+        </select></label>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="t3">
+    <h2 id="t3">3. Mi banco de samples</h2>
+    <p id="bankNote" class="hint" style="margin:0 0 12px">Tu banco se guarda solo en este navegador: al cerrar y volver a abrir la página, tus samples siguen aquí.</p>
+    <p id="bankEmpty" class="empty">Aún no has guardado nada.</p>
+    <ul id="bank" class="bank"></ul>
+    <div class="row" style="margin-top:14px">
+      <button id="btnExp" disabled>Exportar copia de seguridad (.json)</button>
+      <label class="filebtn">Importar copia de seguridad
+        <input id="impFile" type="file" accept=".json,application/json">
+      </label>
+    </div>
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">
+      <h2 style="font-size:.98rem">Carpeta en tu computador</h2>
+      <p id="folderInfo" class="hint" style="margin:0 0 10px">Sin carpeta conectada.</p>
+      <div class="row">
+        <button id="btnFolder">Elegir carpeta de samples</button>
+        <button id="btnFolderImp">Importar WAV de la carpeta</button>
+        <button id="btnClear" style="color:var(--danger)">Vaciar banco</button>
+      </div>
+      <p class="hint">Si conectas una carpeta, cada sample que guardes también queda ahí como archivo WAV normal. Así puedes abrirla en el explorador de archivos, ordenar, renombrar o borrar a mano. "Vaciar banco" solo limpia la lista de esta página; no toca los archivos de la carpeta.</p>
+    </div>
+    <p class="hint">Haz una copia de seguridad de vez en cuando. Si borras los datos del navegador o cambias de computador, la importas y recuperas todo.</p>
+  </section>
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  let ctx = null;
+  const ac = () => ctx || (ctx = new (window.AudioContext || window.webkitAudioContext)());
+
+  let buffer = null;                 // audio completo cargado
+  let sel = {start:0, end:0};        // fragmento (segundos)
+  let src = null, playStart = 0, playDur = 0, raf = 0;
+  let rec = null, recStream = null, chunks = [], recTimer = 0, recT0 = 0;
+  const bank = [];
+
+  const canvas = $('wave'), g = canvas.getContext('2d');
+  const fmt = s => { const m = Math.floor(s/60); return m + ':' + (s%60).toFixed(2).padStart(5,'0'); };
+  const status = (t, bad) => { const el = $('status'); el.textContent = t; el.style.color = bad ? 'var(--danger)' : 'var(--ink)'; };
+
+  /* ---------- Cargar audio ---------- */
+  function setBuffer(ab, msg){
+    buffer = ab;
+    sel = {start:0, end:buffer.duration};
+    ['btnPlay','btnSave','btnDl'].forEach(i => $(i).disabled = false);
+    status(msg || ('Audio listo (' + fmt(buffer.duration) + ').') + ' Arrastra sobre la onda para elegir el fragmento.');
+    draw(); updateTimes();
+  }
+  async function loadBlob(blob){
+    status('Procesando el audio…');
+    try{
+      const arr = await blob.arrayBuffer();
+      setBuffer(await ac().decodeAudioData(arr));
+    }catch(e){
+      status('No pude leer ese audio. Prueba con otro archivo o repite la captura.', true);
+    }
+  }
+
+  $('file').addEventListener('change', e => { const f = e.target.files[0]; if(f) loadBlob(f); });
+
+  /* ---------- Captura de pestaña (sin compresión) ---------- */
+  // Grabamos el audio crudo (PCM) en vez de usar MediaRecorder, que comprime a MP3-like/Opus y lo degrada.
+  const WORKLET = `class Rec extends AudioWorkletProcessor{process(inp){const i=inp[0];if(i&&i.length){this.port.postMessage(i.map(c=>c.slice()));}return true;}}registerProcessor('rec',Rec);`;
+  let capNode = null, capSrc = null, capMute = null, capL = [], capR = [], capCh = 2, capFrames = 0;
+
+  function pushFrames(chs){
+    capCh = chs.length > 1 ? 2 : 1;
+    capL.push(chs[0]); capR.push(chs.length > 1 ? chs[1] : chs[0]); capFrames += chs[0].length;
+  }
+
+  async function startCapture(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+      status('Tu navegador no permite capturar audio de pestañas. Usa Chrome o Edge en computador.', true); return;
+    }
+    try{
+      recStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: {
+          echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+          channelCount: 2, sampleRate: 48000, sampleSize: 16
+        }
+      });
+    }catch(e){ status('Captura cancelada.', true); return; }
+
+    const tracks = recStream.getAudioTracks();
+    if(!tracks.length){
+      recStream.getTracks().forEach(t => t.stop());
+      status('No se compartió audio. Vuelve a intentarlo y activa "Compartir audio de la pestaña".', true); return;
+    }
+    const c = ac(); await c.resume();
+    capL = []; capR = []; capFrames = 0;
+    capSrc = c.createMediaStreamSource(new MediaStream(tracks));
+    capMute = c.createGain(); capMute.gain.value = 0; capMute.connect(c.destination);
+
+    try{
+      const url = URL.createObjectURL(new Blob([WORKLET], {type:'application/javascript'}));
+      await c.audioWorklet.addModule(url);
+      capNode = new AudioWorkletNode(c, 'rec', {numberOfInputs:1, numberOfOutputs:1, channelCount:2, channelCountMode:'explicit'});
+      capNode.port.onmessage = e => pushFrames(e.data);
+    }catch(err){
+      // Plan B para navegadores sin AudioWorklet
+      capNode = c.createScriptProcessor(4096, 2, 2);
+      capNode.onaudioprocess = e => {
+        const n = e.inputBuffer.numberOfChannels, out = [];
+        for(let i=0;i<n;i++) out.push(new Float32Array(e.inputBuffer.getChannelData(i)));
+        pushFrames(out);
+      };
+    }
+    capSrc.connect(capNode); capNode.connect(capMute);
+
+    tracks[0].addEventListener('ended', finishCapture);
+    recT0 = Date.now();
+    $('btnRec').disabled = true; $('btnStop').disabled = false;
+    recTimer = setInterval(() => status('Grabando sin compresión… ' + fmt((Date.now()-recT0)/1000) + '  (dale play al sample en la otra pestaña)'), 200);
+  }
+
+  function finishCapture(){
+    if(!capNode) return;
+    clearInterval(recTimer);
+    try{ capSrc.disconnect(); capNode.disconnect(); capMute.disconnect(); }catch(e){}
+    if(recStream) recStream.getTracks().forEach(t => t.stop());
+    capNode = null;
+    $('btnRec').disabled = false; $('btnStop').disabled = true;
+    if(!capFrames){ status('No llegó audio. Revisa que el sample estuviera sonando en la pestaña compartida.', true); return; }
+    const ab = new AudioBuffer({length: capFrames, numberOfChannels: 2, sampleRate: ac().sampleRate});
+    [capL, capR].forEach((list, ch) => {
+      const d = ab.getChannelData(ch); let o = 0;
+      for(const part of list){ d.set(part, o); o += part.length; }
+    });
+    setBuffer(ab, 'Captura lista (' + fmt(ab.duration) + ', ' + ab.sampleRate + ' Hz, sin compresión).');
+  }
+
+  $('btnRec').addEventListener('click', startCapture);
+  $('btnStop').addEventListener('click', finishCapture);
+
+  /* ---------- Forma de onda ---------- */
+  function resize(){
+    const r = canvas.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    canvas.width = Math.round(r.width * d); canvas.height = Math.round(r.height * d);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+
+  function draw(playFrac){
+    const W = canvas.width, H = canvas.height;
+    g.clearRect(0,0,W,H);
+    g.fillStyle = '#0e0e11'; g.fillRect(0,0,W,H);
+    if(!buffer){
+      g.fillStyle = '#9b978d'; g.font = (14*(window.devicePixelRatio||1)) + 'px system-ui';
+      g.textAlign = 'center'; g.fillText('La onda aparecerá aquí', W/2, H/2); return;
+    }
+    const d0 = buffer.getChannelData(0), step = Math.max(1, Math.floor(d0.length / W)), mid = H/2;
+    // selección
+    const x0 = sel.start/buffer.duration*W, x1 = sel.end/buffer.duration*W;
+    g.fillStyle = 'rgba(107,211,138,.22)'; g.fillRect(x0, 0, x1-x0, H);
+    // onda
+    g.fillStyle = '#d9a441';
+    for(let x=0; x<W; x++){
+      let mn = 1, mx = -1; const o = x*step;
+      for(let i=0; i<step; i+=Math.max(1,step>>5)){ const v = d0[o+i] || 0; if(v<mn) mn=v; if(v>mx) mx=v; }
+      const y1 = mid - mx*mid*.95, y2 = mid - mn*mid*.95;
+      g.fillRect(x, y1, 1, Math.max(1, y2-y1));
+    }
+    // bordes de selección
+    g.fillStyle = '#6bd38a'; g.fillRect(x0-1, 0, 2, H); g.fillRect(x1-1, 0, 2, H);
+    // cabezal
+    if(playFrac != null){
+      const t = $('rev').checked ? sel.end - playFrac*(sel.end-sel.start) : sel.start + playFrac*(sel.end-sel.start);
+      g.fillStyle = '#f3efe6'; g.fillRect(t/buffer.duration*W - 1, 0, 2, H);
+    }
+  }
+
+  function updateTimes(){
+    if(!buffer){ return; }
+    $('tSel').textContent = 'Fragmento: ' + fmt(sel.start) + ' → ' + fmt(sel.end) + '  (' + (sel.end-sel.start).toFixed(2) + ' s)';
+    $('tTot').textContent = 'Total: ' + fmt(buffer.duration);
+  }
+
+  let dragX0 = null, dragMoved = false;
+  const tAt = e => { const r = canvas.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)) * buffer.duration; };
+  canvas.addEventListener('pointerdown', e => { if(!buffer) return; canvas.setPointerCapture(e.pointerId); dragX0 = tAt(e); dragMoved = false; });
+  canvas.addEventListener('pointermove', e => {
+    if(dragX0 == null) return;
+    const t = tAt(e);
+    if(Math.abs(t - dragX0) > buffer.duration*0.003) dragMoved = true;
+    sel = {start: Math.min(dragX0,t), end: Math.max(dragX0,t)};
+    if(sel.end - sel.start < 0.01) sel.end = Math.min(buffer.duration, sel.start + 0.01);
+    draw(); updateTimes();
+  });
+  canvas.addEventListener('pointerup', () => {
+    if(dragX0 == null) return;
+    if(!dragMoved) sel = {start:0, end:buffer.duration};
+    dragX0 = null; draw(); updateTimes();
+  });
+
+  /* ---------- Procesar el fragmento ---------- */
+  function render(){
+    const sr = buffer.sampleRate, ch = buffer.numberOfChannels;
+    const s = Math.floor(sel.start*sr), e = Math.min(buffer.length, Math.floor(sel.end*sr));
+    const inLen = Math.max(2, e - s);
+    const rate = Math.pow(2, parseFloat($('semi').value)/12);
+    const outLen = Math.max(1, Math.floor(inLen/rate));
+    const rev = $('rev').checked;
+    const out = new AudioBuffer({length: outLen, numberOfChannels: ch, sampleRate: sr});
+    const fi = Math.min(outLen, Math.floor(parseFloat($('fi').value)/1000*sr));
+    const fo = Math.min(outLen, Math.floor(parseFloat($('fo').value)/1000*sr));
+    let peak = 0;
+    for(let c=0; c<ch; c++){
+      const a = buffer.getChannelData(c), d = out.getChannelData(c);
+      for(let i=0; i<outLen; i++){
+        let pos = i*rate; if(rev) pos = (inLen-1) - pos; if(pos < 0) pos = 0;
+        const k = Math.floor(pos), f = pos - k;
+        const v1 = a[s+k] || 0, v2 = a[s+Math.min(k+1, inLen-1)] || 0;
+        let v = v1 + (v2-v1)*f;
+        if(fi && i < fi) v *= i/fi;
+        if(fo && i > outLen-fo) v *= (outLen-i)/fo;
+        d[i] = v;
+        const av = Math.abs(v); if(av > peak) peak = av;
+      }
+    }
+    let gain = parseFloat($('vol').value)/100;
+    if($('norm').checked && peak > 0) gain *= 0.97/peak;
+    for(let c=0; c<ch; c++){
+      const d = out.getChannelData(c);
+      for(let i=0; i<outLen; i++){ let v = d[i]*gain; d[i] = v > 1 ? 1 : v < -1 ? -1 : v; }
+    }
+    return out;
+  }
+
+  /* ---------- Reproducir ---------- */
+  function stop(){
+    if(src){ try{ src.onended = null; src.stop(); }catch(e){} src = null; }
+    cancelAnimationFrame(raf); $('btnPlay').textContent = 'Reproducir fragmento';
+    if(buffer) draw();
+  }
+  function play(){
+    if(!buffer) return;
+    if(src){ stop(); return; }
+    ac().resume();
+    const out = render();
+    src = ac().createBufferSource(); src.buffer = out; src.loop = $('loop').checked;
+    src.connect(ac().destination);
+    playDur = out.duration; playStart = ac().currentTime;
+    src.onended = stop; src.start();
+    $('btnPlay').textContent = 'Detener';
+    const tick = () => { if(!src) return; draw(((ac().currentTime - playStart) % playDur)/playDur); raf = requestAnimationFrame(tick); };
+    tick();
+  }
+  $('btnPlay').addEventListener('click', play);
+  document.addEventListener('keydown', e => {
+    if(e.code === 'Space' && !$('viewSamples').hidden && !/INPUT|BUTTON|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ e.preventDefault(); play(); }
+  });
+
+  /* ---------- Exportar WAV ---------- */
+  function toWav(ab, bitsOverride){
+    const bits = bitsOverride || parseInt($('bits').value, 10), bytes = bits/8;
+    const ch = ab.numberOfChannels, len = ab.length, sr = ab.sampleRate;
+    const buf = new ArrayBuffer(44 + len*ch*bytes), v = new DataView(buf);
+    const w = (o,s) => { for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4, 36+len*ch*bytes, true); w(8,'WAVE'); w(12,'fmt ');
+    v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,ch,true);
+    v.setUint32(24,sr,true); v.setUint32(28,sr*ch*bytes,true); v.setUint16(32,ch*bytes,true); v.setUint16(34,bits,true);
+    w(36,'data'); v.setUint32(40, len*ch*bytes, true);
+    const data = []; for(let c=0;c<ch;c++) data.push(ab.getChannelData(c));
+    let o = 44;
+    for(let i=0;i<len;i++) for(let c=0;c<ch;c++){
+      const s = Math.max(-1, Math.min(1, data[c][i]));
+      if(bits === 16){ v.setInt16(o, s < 0 ? s*0x8000 : s*0x7FFF, true); o += 2; }
+      else { const n = Math.round(s < 0 ? s*0x800000 : s*0x7FFFFF); v.setUint8(o, n & 255); v.setUint8(o+1, (n>>8) & 255); v.setUint8(o+2, (n>>16) & 255); o += 3; }
+    }
+    return new Blob([buf], {type:'audio/wav'});
+  }
+  function download(ab, name){
+    const url = URL.createObjectURL(toWav(ab));
+    const a = document.createElement('a'); a.href = url; a.download = name + '.wav';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  $('btnDl').addEventListener('click', () => { if(buffer) download(render(), 'sample'); });
+
+  /* ---------- Banco (se guarda solo en este navegador) ---------- */
+  let db = null, n = 1;
+  const openDb = () => new Promise((res, rej) => {
+    if(!window.indexedDB){ rej(new Error('sin indexedDB')); return; }
+    const rq = indexedDB.open('capturador-samples', 3);
+    rq.onupgradeneeded = () => {
+      const d = rq.result;
+      if(!d.objectStoreNames.contains('samples')) d.createObjectStore('samples', {keyPath:'id'});
+      if(!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
+      if(!d.objectStoreNames.contains('recs')) d.createObjectStore('recs', {keyPath:'id'});
+      if(!d.objectStoreNames.contains('chunks')) d.createObjectStore('chunks', {keyPath:'k'});
+    };
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror = () => rej(rq.error);
+  });
+  function dbPut(item){
+    if(!db) return;
+    try{ db.transaction('samples','readwrite').objectStore('samples').put({id:item.id, name:item.name, created:item.created, file:item.file || null, wav:toWav(item.buf, 24)}); }
+    catch(e){ status('No pude guardar en el navegador. Exporta una copia de seguridad.', true); }
+  }
+  function dbDel(id){ if(!db) return; try{ db.transaction('samples','readwrite').objectStore('samples').delete(id); }catch(e){} }
+
+  function playBuf(ab){
+    ac().resume();
+    const s = ac().createBufferSource(); s.buffer = ab; s.connect(ac().destination); s.start();
+  }
+  function saveBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  function renderBank(){
+    const ul = $('bank'); ul.innerHTML = '';
+    $('bankEmpty').style.display = bank.length ? 'none' : 'block';
+    $('btnExp').disabled = !bank.length;
+    bank.forEach((item, idx) => {
+      const li = document.createElement('li');
+      const inp = document.createElement('input'); inp.type = 'text'; inp.value = item.name; inp.setAttribute('aria-label','Nombre del sample');
+      inp.addEventListener('input', () => item.name = inp.value);
+      inp.addEventListener('change', () => { dbPut(item); renameInFolder(item); });
+      const dur = document.createElement('small'); dur.textContent = item.buf.duration.toFixed(2) + ' s';
+      const bp = document.createElement('button'); bp.textContent = 'Reproducir'; bp.onclick = () => playBuf(item.buf);
+      const bd = document.createElement('button'); bd.textContent = 'Descargar'; bd.onclick = () => download(item.buf, (item.name || 'sample').replace(/[^\w\-áéíóúñÁÉÍÓÚÑ ]/g,'_'));
+      const bx = document.createElement('button'); bx.textContent = 'Quitar del banco'; bx.onclick = () => removeItem(item, false);
+      li.append(inp, dur, bp, bd, bx);
+      if(item.file){
+        const bf = document.createElement('button'); bf.textContent = 'Borrar con su archivo'; bf.style.color = 'var(--danger)';
+        bf.onclick = () => removeItem(item, true); li.append(bf);
+      }
+      ul.appendChild(li);
+    });
+  }
+  function addToBank(name, buf){
+    const item = {id: Date.now() + '-' + Math.random().toString(36).slice(2,7), name, created: Date.now(), buf};
+    bank.push(item); dbPut(item); renderBank();
+    return item;
+  }
+  $('btnSave').addEventListener('click', () => {
+    if(!buffer) return;
+    const item = addToBank('sample ' + (n++), render());
+    status('Guardado en tu banco.');
+    if(dirH) writeToFolder(item).then(ok => { if(ok) status('Guardado en tu banco y en la carpeta "' + dirH.name + '".'); }).catch(() => status('Guardado en el banco, pero no pude escribir en la carpeta.', true));
+  });
+
+  async function loadBank(){
+    try{
+      db = await openDb();
+      try{ dirH = await metaGet('dir'); }catch(e){ dirH = null; }
+      folderLabel();
+      if(navigator.storage && navigator.storage.persist) navigator.storage.persist();
+      const rows = await new Promise((res, rej) => {
+        const rq = db.transaction('samples').objectStore('samples').getAll();
+        rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
+      });
+      rows.sort((x,y) => x.created - y.created);
+      for(const r of rows){
+        const buf = await ac().decodeAudioData(await r.wav.arrayBuffer());
+        bank.push({id:r.id, name:r.name, created:r.created, file:r.file || null, buf});
+      }
+      n = bank.length + 1; renderBank();
+    }catch(e){
+      $('bankNote').textContent = 'Este navegador no permite guardar el banco automáticamente. Usa la copia de seguridad (.json) para no perder tus samples.';
+      $('bankNote').style.color = 'var(--danger)';
+    }
+  }
+
+  /* ---------- Carpeta real en tu computador (opcional) ---------- */
+  let dirH = null;
+  const hasFS = !!window.showDirectoryPicker;
+  const metaPut = (k, v) => new Promise((res, rej) => { const rq = db.transaction('meta','readwrite').objectStore('meta').put(v, k); rq.onsuccess = () => res(); rq.onerror = () => rej(rq.error); });
+  const metaGet = k => new Promise((res, rej) => { const rq = db.transaction('meta').objectStore('meta').get(k); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error); });
+  const safeName = t => (t || 'sample').replace(/[\\/:*?"<>|]/g, '_').trim() || 'sample';
+
+  function folderLabel(){
+    const el = $('folderInfo');
+    if(!hasFS){ el.textContent = 'Este navegador no permite elegir una carpeta. Usa Chrome o Edge, o la copia de seguridad (.json).'; ['btnFolder','btnFolderImp'].forEach(i => $(i).disabled = true); return; }
+    el.textContent = dirH ? 'Carpeta conectada: "' + dirH.name + '". Cada sample que guardes también queda ahí como archivo WAV.' : 'Sin carpeta conectada.';
+  }
+  async function folderReady(ask){
+    if(!dirH) return false;
+    let p = await dirH.queryPermission({mode:'readwrite'});
+    if(p !== 'granted' && ask) p = await dirH.requestPermission({mode:'readwrite'});
+    return p === 'granted';
+  }
+  async function uniqueName(base){
+    let name = base + '.wav', i = 2;
+    for(;;){
+      try{ await dirH.getFileHandle(name); name = base + '-' + (i++) + '.wav'; }catch(e){ return name; }
+    }
+  }
+  async function writeFile(name, buf){
+    const fh = await dirH.getFileHandle(name, {create:true});
+    const w = await fh.createWritable(); await w.write(toWav(buf, 24)); await w.close();
+  }
+  async function writeToFolder(item){
+    if(!(await folderReady(true))) return false;
+    const name = await uniqueName(safeName(item.name));
+    await writeFile(name, item.buf);
+    item.file = name; dbPut(item); renderBank();
+    return true;
+  }
+  async function renameInFolder(item){
+    if(!item.file || !dirH) return;
+    try{
+      if(!(await folderReady(false))) return;
+      const base = safeName(item.name);
+      if(item.file === base + '.wav') return;
+      const name = await uniqueName(base);
+      await writeFile(name, item.buf);
+      await dirH.removeEntry(item.file);
+      item.file = name; dbPut(item); renderBank();
+    }catch(e){}
+  }
+  async function removeItem(item, withFile){
+    if(withFile){
+      if(!confirm('¿Seguro? Se borra el sample del banco y también el archivo "' + item.file + '" de tu carpeta.')) return;
+      try{
+        if(await folderReady(true)) await dirH.removeEntry(item.file);
+      }catch(e){ status('No pude borrar el archivo de la carpeta; revísalo a mano.', true); }
+    }
+    dbDel(item.id);
+    const i = bank.indexOf(item); if(i > -1) bank.splice(i, 1);
+    renderBank();
+  }
+
+  $('btnFolder').addEventListener('click', async () => {
+    try{
+      dirH = await window.showDirectoryPicker({mode:'readwrite', id:'samples-capturador'});
+      await metaPut('dir', dirH);
+      folderLabel();
+      status('Carpeta conectada. Los próximos samples que guardes también se escribirán ahí.');
+    }catch(e){ /* cancelado */ }
+  });
+
+  $('btnFolderImp').addEventListener('click', async () => {
+    if(!dirH){ status('Primero conecta una carpeta.', true); return; }
+    if(!(await folderReady(true))){ status('Sin permiso para leer la carpeta.', true); return; }
+    status('Leyendo la carpeta…');
+    let added = 0;
+    try{
+      for await (const [name, h] of dirH.entries()){
+        if(h.kind !== 'file' || !/\.wav$/i.test(name) || bank.some(b => b.file === name)) continue;
+        const buf = await ac().decodeAudioData(await (await h.getFile()).arrayBuffer());
+        const item = addToBank(name.replace(/\.wav$/i, ''), buf);
+        item.file = name; dbPut(item); added++;
+      }
+      renderBank();
+      status(added ? 'Importados ' + added + ' archivos WAV de la carpeta.' : 'No hay archivos WAV nuevos en la carpeta.');
+    }catch(e){ status('No pude leer algunos archivos de la carpeta.', true); }
+  });
+
+  $('btnClear').addEventListener('click', () => {
+    if(!bank.length) return;
+    if(!confirm('¿Vaciar todo el banco? Los archivos WAV de tu carpeta no se tocan.')) return;
+    try{ db.transaction('samples','readwrite').objectStore('samples').clear(); }catch(e){}
+    bank.length = 0; renderBank(); status('Banco vaciado.');
+  });
+
+  /* Copia de seguridad en JSON */
+  const toB64 = ab => { const u = new Uint8Array(ab); let t = ''; for(let i=0;i<u.length;i+=0x8000) t += String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(t); };
+  const fromB64 = b64 => { const t = atob(b64), u = new Uint8Array(t.length); for(let i=0;i<t.length;i++) u[i] = t.charCodeAt(i); return u.buffer; };
+
+  $('btnExp').addEventListener('click', async () => {
+    if(!bank.length) return;
+    status('Preparando la copia de seguridad…');
+    const samples = [];
+    for(const it of bank) samples.push({name: it.name, wav: toB64(await toWav(it.buf, 24).arrayBuffer())});
+    const blob = new Blob([JSON.stringify({app:'capturador-samples', version:1, samples})], {type:'application/json'});
+    saveBlob(blob, 'banco-de-samples.json');
+    status('Copia de seguridad descargada (' + samples.length + ' samples).');
+  });
+
+  $('impFile').addEventListener('change', async e => {
+    const f = e.target.files[0]; if(!f) return;
+    try{
+      const data = JSON.parse(await f.text());
+      if(!data.samples || !data.samples.length) throw new Error('vacío');
+      status('Importando…');
+      for(const smp of data.samples){
+        const buf = await ac().decodeAudioData(fromB64(smp.wav));
+        addToBank(smp.name || ('sample ' + (n++)), buf);
+      }
+      status('Importados ' + data.samples.length + ' samples a tu banco.');
+    }catch(err){
+      status('Ese archivo no parece una copia de seguridad de este sitio.', true);
+    }
+    e.target.value = '';
+  });
+
+  /* Actualizar etiquetas de controles */
+  const bind = (id, out, f) => $(id).addEventListener('input', () => { $(out).textContent = f($(id).value); });
+  bind('semi','oSemi', v => (v>0?'+':'') + v + ' st');
+  bind('fi','oFi', v => v + ' ms');
+  bind('fo','oFo', v => v + ' ms');
+  bind('vol','oVol', v => v + '%');
+
+  /* ============================================================
+     Ideas y reuniones: grabación larga, segura y con marcadores
+     ============================================================ */
+  const rEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const p2 = n => String(n).padStart(2,'0');
+  const fmtT = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return (h ? h + ':' + p2(m) : p2(m)) + ':' + p2(x); };
+  const fmtDate = t => { const d = new Date(t); return d.toLocaleDateString('es', {day:'numeric', month:'short', year:'numeric'}) + ' · ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+  const fmtSize = b => b > 1048576 ? (b/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b/1024)) + ' KB';
+  const extOf = m => /mp4/.test(m||'') ? '.m4a' : /ogg/.test(m||'') ? '.ogg' : '.webm';
+  const rS = (t, bad) => { const e = $('rStatus'); e.textContent = t; e.style.color = bad ? 'var(--danger)' : 'var(--ink)'; };
+
+  const RS = {on:false, paused:false, stopping:false, t0:0, acc:0, markers:[], id:null, idx:0, rec:null, streams:[], c:null, an:null, nodes:[], raf:0, pending:[], mem:[], mime:'', size:0, tr:[], sr:null, wake:null, lastSound:0, saver:0, tick:0, title:'', type:'', created:0, mode:'mic'};
+  const elapsed = () => RS.acc + (RS.on && !RS.paused ? Date.now() - RS.t0 : 0);
+
+  /* ----- base de datos (comparte la del banco de samples, versión 3) ----- */
+  const rdb = openDb(); rdb.catch(() => {});
+  const P = rq => new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
+  const store = async (n, mode) => (await rdb).transaction(n, mode || 'readonly').objectStore(n);
+  const rAll = async () => P((await store('recs')).getAll());
+  const rPut = async r => P((await store('recs', 'readwrite')).put(r));
+  const rDel = async id => P((await store('recs', 'readwrite')).delete(id));
+  const putChunk = async (rid, i, blob) => P((await store('chunks', 'readwrite')).put({k: rid + '|' + String(i).padStart(6,'0'), rid, i, blob}));
+  const getChunks = async rid => P((await store('chunks')).getAll(IDBKeyRange.bound(rid + '|', rid + '|\uffff')));
+  const delChunks = async rid => P((await store('chunks', 'readwrite')).delete(IDBKeyRange.bound(rid + '|', rid + '|\uffff')));
+
+  /* ----- pestañas ----- */
+  function tab(which){
+    const rec = which !== 'smp';
+    $('viewRec').hidden = !rec; $('viewSamples').hidden = rec;
+    $('tabRec').setAttribute('aria-selected', rec); $('tabSmp').setAttribute('aria-selected', !rec);
+    try{ localStorage.setItem('cap_tab', which); }catch(e){}
+    if(!rec) resize();
+  }
+  $('tabRec').onclick = () => tab('rec'); $('tabSmp').onclick = () => tab('smp');
+
+  /* ----- aviso de consentimiento ----- */
+  const consentOK = () => { try{ return localStorage.getItem('cap_ok') === '1'; }catch(e){ return true; } };
+  $('rcOk').onclick = () => { if(!$('rcChk').checked){ $('rcChk').focus(); return; } try{ localStorage.setItem('cap_ok','1'); }catch(e){} $('dlgRec').close(); rStart(); };
+  $('rcNo').onclick = () => $('dlgRec').close();
+
+  /* ----- micrófono y dispositivos ----- */
+  async function fillDevices(){
+    try{
+      const d = (await navigator.mediaDevices.enumerateDevices()).filter(x => x.kind === 'audioinput' && x.deviceId && x.deviceId !== 'default' && x.deviceId !== 'communications');
+      const cur = $('rDev').value;
+      $('rDev').innerHTML = '<option value="">Predeterminado</option>' + d.map(x => '<option value="' + rEsc(x.deviceId) + '">' + rEsc(x.label || 'Micrófono') + '</option>').join('');
+      $('rDev').value = cur;
+    }catch(e){}
+  }
+  async function getMic(){
+    const id = $('rDev').value, ns = $('rNS').checked;
+    const s = await navigator.mediaDevices.getUserMedia({audio:{deviceId: id ? {exact:id} : undefined, echoCancellation:ns, noiseSuppression:ns, autoGainControl:ns}});
+    fillDevices(); return s;
+  }
+
+  /* ----- transcripción en vivo (solo micrófono) ----- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ $('rSR').disabled = true; $('rLang').disabled = true; $('rSRhint').textContent = 'Este navegador no tiene transcripción en vivo (usa Chrome o Edge). Puedes grabar igual y pegar la transcripción después.'; }
+  let srInterim = '';
+  function liveRender(){
+    const box = $('rLive'); if(!$('rSR').checked && !RS.tr.length){ box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = RS.tr.slice(-6).map(x => '[' + fmtT(x.t) + '] ' + rEsc(x.x)).join('\n') + (srInterim ? '\n<i>' + rEsc(srInterim) + '</i>' : '');
+    box.scrollTop = box.scrollHeight;
+  }
+  function srStart(){
+    if(!SR || !$('rSR').checked || RS.mode === 'tab' || RS.sr) return;
+    try{
+      const r = new SR(); r.lang = $('rLang').value; r.continuous = true; r.interimResults = true;
+      r.onresult = e => {
+        srInterim = '';
+        for(let i = e.resultIndex; i < e.results.length; i++){
+          const res = e.results[i], t = (res[0].transcript || '').trim();
+          if(res.isFinal){ if(t) RS.tr.push({t: elapsed()/1000, x: t}); } else srInterim += t + ' ';
+        }
+        liveRender();
+      };
+      r.onend = () => { RS.sr = null; if(RS.on && !RS.paused && !RS.stopping){ setTimeout(srStart, 300); } };
+      r.onerror = () => {};
+      RS.sr = r; r.start();
+    }catch(e){ RS.sr = null; }
+  }
+  function srStop(){ const r = RS.sr; RS.sr = null; if(r){ try{ r.onend = null; r.stop(); }catch(e){} } srInterim = ''; }
+
+  /* ----- medidor de nivel ----- */
+  const mc = $('rMeter'), mg = mc.getContext('2d');
+  function meter(){
+    if(!RS.on) return;
+    const a = RS.an, buf = new Float32Array(a.fftSize); a.getFloatTimeDomainData(buf);
+    let s = 0; for(let i = 0; i < buf.length; i++) s += buf[i]*buf[i];
+    const rms = Math.sqrt(s/buf.length), lv = Math.min(1, rms*4);
+    mg.clearRect(0, 0, mc.width, mc.height);
+    mg.fillStyle = lv > .85 ? '#ff6b6b' : '#6bd38a'; mg.fillRect(0, 0, mc.width*lv, mc.height);
+    if(rms > .003) RS.lastSound = Date.now();
+    RS.raf = requestAnimationFrame(meter);
+  }
+  function ticker(){
+    $('rTime').textContent = fmtT(elapsed()/1000);
+    if(RS.on && !RS.paused && Date.now() - RS.lastSound > 8000 && !RS.warned){ RS.warned = true; rS('No estoy oyendo sonido hace unos segundos. Revisa el micrófono o que la pestaña tenga audio.', true); }
+    if(RS.on && Date.now() - RS.lastSound < 3000 && RS.warned){ RS.warned = false; rS('● Grabando…'); }
+  }
+
+  /* ----- empezar ----- */
+  async function rStart(){
+    if(RS.on) return;
+    if(!consentOK()){ $('rcChk').checked = false; $('dlgRec').showModal(); return; }
+    const mode = document.querySelector('input[name=rsrc]:checked').value, needMic = mode !== 'tab', needTab = mode !== 'mic';
+    if(!navigator.mediaDevices || !window.MediaRecorder){ rS('Este navegador no permite grabar audio. Usa Chrome, Edge o un Safari actualizado.', true); return; }
+    const streams = [], free = () => streams.forEach(s => s.getTracks().forEach(t => t.stop()));
+    if(needTab){
+      if(!navigator.mediaDevices.getDisplayMedia){ rS('Tu navegador no puede capturar el audio de una pestaña. Usa Chrome o Edge en computador, o elige «Micrófono».', true); return; }
+      let ds; try{ ds = await navigator.mediaDevices.getDisplayMedia({video:true, audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}}); }
+      catch(e){ rS('Captura cancelada.', true); return; }
+      if(!ds.getAudioTracks().length){ ds.getTracks().forEach(t => t.stop()); rS('No se compartió audio. Vuelve a intentarlo, elige una pestaña y activa «Compartir audio de la pestaña».', true); return; }
+      streams.push(ds);
+    }
+    if(needMic){
+      try{ streams.push(await getMic()); }
+      catch(e){ free(); rS('No pude usar el micrófono. Revisa el permiso del navegador y que esté conectado.', true); return; }
+    }
+    const c = ac(); try{ await c.resume(); }catch(e){}
+    const dest = c.createMediaStreamDestination(), mix = c.createGain(), an = c.createAnalyser(); an.fftSize = 1024;
+    mix.connect(dest); mix.connect(an);
+    const nodes = [mix, an, dest];
+    streams.forEach(s => { const sn = c.createMediaStreamSource(new MediaStream(s.getAudioTracks())), gn = c.createGain(); gn.gain.value = streams.length > 1 ? .9 : 1; sn.connect(gn); gn.connect(mix); nodes.push(sn, gn); });
+    const mimes = ['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'];
+    const mime = mimes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+    let mr; try{ mr = new MediaRecorder(dest.stream, Object.assign(mime ? {mimeType:mime} : {}, {audioBitsPerSecond: +$('rQ').value})); }catch(e){ mr = new MediaRecorder(dest.stream); }
+    const id = 'r-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    Object.assign(RS, {on:true, paused:false, stopping:false, warned:false, t0:Date.now(), acc:0, markers:[], id, idx:0, rec:mr, streams, c, an, nodes, pending:[], mem:[], mime: mr.mimeType || mime || 'audio/webm', size:0, tr:[], lastSound:Date.now(), title:$('rTitle').value.trim(), type:$('rType').value, created:Date.now(), mode});
+    mr.ondataavailable = e => {
+      if(!e.data || !e.data.size) return;
+      RS.size += e.data.size; RS.mem.push(e.data);
+      RS.pending.push(putChunk(id, ++RS.idx, e.data).catch(() => {}));
+    };
+    mr.start(4000);
+    snapshot();
+    RS.saver = setInterval(snapshot, 10000);
+    RS.tick = setInterval(ticker, 250);
+    try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+    try{ if(navigator.wakeLock) RS.wake = await navigator.wakeLock.request('screen'); }catch(e){}
+    srStart(); liveRender();
+    ui(true); rS('● Grabando…'); meter(); marksRender();
+  }
+  function ui(on){
+    $('rGo').disabled = on; $('rPause').disabled = !on; $('rStop').disabled = !on; $('rMark').disabled = !on;
+    $('rTime').classList.toggle('on', on);
+    ['rTitle','rType','rDev','rQ','rNS','rSR','rLang'].forEach(i => $(i).disabled = on || ((i === 'rSR' || i === 'rLang') && !SR));
+    document.querySelectorAll('input[name=rsrc]').forEach(x => x.disabled = on);
+    if(!on){ mg.clearRect(0, 0, mc.width, mc.height); $('rPause').textContent = 'Pausar'; }
+  }
+  /* copia parcial para recuperar si se cierra la página */
+  function snapshot(){
+    if(!RS.on) return;
+    rPut({id:RS.id, title:RS.title, type:RS.type, created:RS.created, dur:elapsed()/1000, mime:RS.mime, size:RS.size, markers:RS.markers, notes:'', transcript:trText(), summary:'', partial:true}).catch(() => {});
+  }
+  const trText = () => RS.tr.map(x => '[' + fmtT(x.t) + '] ' + x.x).join('\n');
+
+  /* ----- pausar, marcar, detener ----- */
+  function rPause(){
+    if(!RS.on || RS.stopping) return;
+    if(!RS.paused){ RS.rec.pause(); RS.acc += Date.now() - RS.t0; RS.paused = true; srStop(); $('rPause').textContent = 'Reanudar'; rS('En pausa.'); }
+    else{ RS.rec.resume(); RS.t0 = Date.now(); RS.paused = false; srStart(); $('rPause').textContent = 'Pausar'; rS('● Grabando…'); }
+  }
+  function rMark(){
+    if(!RS.on || RS.stopping) return;
+    RS.markers.push({t: elapsed()/1000, l:''}); marksRender(); snapshot();
+    const ins = $('rMarks').querySelectorAll('input'); if(ins.length) ins[ins.length-1].focus();
+  }
+  function marksRender(){
+    $('rMarks').innerHTML = RS.markers.map((m, i) => '<li><b>' + fmtT(m.t) + '</b><input data-i="' + i + '" value="' + rEsc(m.l) + '" placeholder="¿Qué pasó aquí? (opcional)" aria-label="Nota del momento ' + (i+1) + '"><button data-d="' + i + '" aria-label="Quitar marca">✕</button></li>').join('');
+  }
+  $('rMarks').addEventListener('input', e => { if(e.target.dataset.i != null) RS.markers[+e.target.dataset.i].l = e.target.value; });
+  $('rMarks').addEventListener('click', e => { const d = e.target.dataset.d; if(d != null){ RS.markers.splice(+d, 1); marksRender(); } });
+  document.addEventListener('keydown', e => {
+    if(!$('viewRec').hidden && RS.on && (e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ e.preventDefault(); rMark(); }
+  });
+  window.addEventListener('beforeunload', e => { if(RS.on){ e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('visibilitychange', async () => { if(RS.on && !document.hidden && navigator.wakeLock){ try{ RS.wake = await navigator.wakeLock.request('screen'); }catch(e){} } });
+
+  async function rStop(){
+    if(!RS.on || RS.stopping) return;
+    RS.stopping = true;
+    const dur = elapsed()/1000;
+    clearInterval(RS.saver); clearInterval(RS.tick); cancelAnimationFrame(RS.raf);
+    srStop();
+    const stopped = new Promise(res => { RS.rec.onstop = res; });
+    try{ if(RS.rec.state !== 'inactive') RS.rec.stop(); }catch(e){}
+    await stopped;
+    RS.streams.forEach(s => s.getTracks().forEach(t => t.stop()));
+    RS.nodes.forEach(n => { try{ n.disconnect(); }catch(e){} });
+    try{ if(RS.wake) await RS.wake.release(); }catch(e){}
+    await Promise.all(RS.pending);
+    const blob = new Blob(RS.mem, {type: RS.mime});
+    const rec = {id:RS.id, title: RS.title || (RS.type + ' · ' + fmtDate(RS.created)), type:RS.type, created:RS.created, dur, mime:RS.mime, size:blob.size, blob, markers:RS.markers.map(m => ({...m})), notes:'', transcript:trText(), summary:'', partial:false};
+    RS.on = false; ui(false); $('rTime').textContent = '00:00'; $('rLive').hidden = true; $('rMarks').innerHTML = ''; $('rTitle').value = '';
+    let saved = true;
+    try{ await rPut(rec); await delChunks(rec.id); }
+    catch(e){ saved = false; saveBlob(blob, safeName(rec.title) + extOf(rec.mime)); }
+    RS.mem = []; RS.tr = [];
+    openR.add(rec.id);
+    await rLoad();
+    let msg = saved ? 'Guardada «' + rec.title + '» (' + fmtT(dur) + ', ' + fmtSize(blob.size) + ').' : 'No pude guardarla en el navegador (¿poco espacio?). Descargué el audio a tu computador.';
+    if(saved && dirH){ const ok = await folderCopy(rec).catch(() => false); msg += ok ? ' También quedó copiada en tu carpeta.' : ' No pude copiarla a la carpeta; descárgala con «Paquete .zip».'; }
+    rS(msg, !saved);
+  }
+  $('rGo').onclick = rStart; $('rPause').onclick = rPause; $('rStop').onclick = rStop; $('rMark').onclick = rMark;
+
+  /* ----- recuperar grabaciones interrumpidas ----- */
+  async function recover(){
+    let all = []; try{ all = await rAll(); }catch(e){ return 0; }
+    let n = 0;
+    for(const r of all){
+      if(!r.partial || (RS.on && r.id === RS.id)) continue;
+      try{
+        const ch = await getChunks(r.id);
+        if(!ch.length){ await rDel(r.id); continue; }
+        const blob = new Blob(ch.map(c => c.blob), {type: r.mime});
+        await rPut({...r, blob, size:blob.size, partial:false, recovered:true, title: r.title ? r.title + ' (recuperada)' : r.type + ' (recuperada)', dur: r.dur || 0});
+        await delChunks(r.id); n++;
+      }catch(e){}
+    }
+    return n;
+  }
+
+  /* ----- biblioteca ----- */
+  let RECS = []; const openR = new Set(), urls = new Map();
+  async function rLoad(){
+    try{ RECS = (await rAll()).filter(r => !r.partial).sort((a, b) => b.created - a.created); }catch(e){ RECS = []; }
+    rRender();
+  }
+  const mdOf = r => ['# ' + r.title, '', '- Tipo: ' + r.type, '- Fecha: ' + fmtDate(r.created), '- Duración: ' + fmtT(r.dur || 0), '',
+    '## Momentos marcados', r.markers && r.markers.length ? r.markers.map(m => '- [' + fmtT(m.t) + '] ' + (m.l || '')).join('\n') : '(ninguno)', '',
+    '## Notas', r.notes || '(sin notas)', '', '## Resumen', r.summary || '(sin resumen)', '', '## Transcripción', r.transcript || '(sin transcripción)', ''].join('\n');
+  function rRender(){
+    const q = $('rSearch').value.toLowerCase().trim(), f = $('rFilter').value;
+    const L = RECS.filter(r => (!f || r.type === f) && (!q || [r.title, r.notes, r.transcript, r.summary].join(' ').toLowerCase().includes(q)));
+    $('rEmpty').hidden = RECS.length > 0; $('rEmpty').textContent = RECS.length ? '' : 'Aún no has grabado nada.';
+    const tot = RECS.reduce((a, r) => a + (r.size || 0), 0);
+    $('rUse').textContent = RECS.length ? RECS.length + ' grabación' + (RECS.length > 1 ? 'es' : '') + ' · ' + fmtSize(tot) + ' en este navegador' + (q || f ? ' · mostrando ' + L.length : '') : '';
+    $('rList').innerHTML = L.map(card).join('');
+    L.forEach(r => { if(openR.has(r.id)) hookAudio(r); });
+  }
+  function card(r){
+    const op = openR.has(r.id);
+    let h = '<li class="rc" data-id="' + rEsc(r.id) + '"><div class="rch"><input class="rt" data-a="title" value="' + rEsc(r.title) + '" aria-label="Título"><span class="badge">' + rEsc(r.type) + '</span><small>' + fmtDate(r.created) + ' · ' + fmtT(r.dur || 0) + ' · ' + fmtSize(r.size || 0) + '</small></div>' +
+      '<div class="row"><button data-a="open" aria-expanded="' + op + '">' + (op ? 'Cerrar' : 'Abrir') + '</button><button data-a="dl">Descargar audio</button><button data-a="zip">Paquete .zip</button><button data-a="del" class="danger">Eliminar</button></div>';
+    if(op){
+      if(!urls.has(r.id)) urls.set(r.id, URL.createObjectURL(r.blob));
+      h += '<audio controls preload="metadata" src="' + urls.get(r.id) + '"></audio>' +
+        (r.markers && r.markers.length ? '<div class="mk">' + r.markers.map((m, i) => '<button data-a="seek" data-t="' + m.t + '">▶ ' + fmtT(m.t) + (m.l ? ' · ' + rEsc(m.l) : '') + '</button>').join('') + '</div>' : '') +
+        '<label class="fld">Notas<textarea data-a="notes" placeholder="Tus apuntes de esta grabación">' + rEsc(r.notes || '') + '</textarea></label>' +
+        '<label class="fld" style="margin-top:8px">Transcripción<textarea data-a="tr" placeholder="Pega aquí la transcripción o escríbela. Si usaste «Transcribir mientras grabo», aparece sola.">' + rEsc(r.transcript || '') + '</textarea></label>' +
+        '<div class="row"><button data-a="ai" class="primary">Resumir con IA</button><button data-a="toSample">Enviar al editor de samples</button></div>' +
+        '<label class="fld" style="margin-top:8px">Resumen<textarea data-a="sum" placeholder="Aquí aparece el resumen con IA. También puedes escribirlo tú.">' + rEsc(r.summary || '') + '</textarea></label>' +
+        '<div class="row"><button data-a="copysum">Copiar resumen</button></div>';
+    }
+    return h + '</li>';
+  }
+  function hookAudio(r){
+    const a = document.querySelector('.rc[data-id="' + CSS.escape(r.id) + '"] audio'); if(!a) return;
+    a.addEventListener('loadedmetadata', () => { if(a.duration === Infinity){ a.currentTime = 1e101; a.addEventListener('timeupdate', function f(){ a.removeEventListener('timeupdate', f); a.currentTime = 0; }); } });
+  }
+  const byId = id => RECS.find(r => r.id === id);
+  const rowOf = el => { const li = el.closest('.rc'); return li ? byId(li.dataset.id) : null; };
+  let saveT = 0;
+  const saveRec = r => rPut(r).catch(() => rS('No pude guardar los cambios en el navegador.', true));
+  function later(r){ clearTimeout(saveT); saveT = setTimeout(() => saveRec(r), 600); }
+  $('rList').addEventListener('input', e => {
+    const r = rowOf(e.target); if(!r) return; const a = e.target.dataset.a;
+    if(a === 'notes') r.notes = e.target.value; else if(a === 'tr') r.transcript = e.target.value; else if(a === 'sum') r.summary = e.target.value; else if(a === 'title') r.title = e.target.value; else return;
+    later(r);
+  });
+  $('rList').addEventListener('change', e => { const r = rowOf(e.target); if(r && e.target.dataset.a){ clearTimeout(saveT); saveRec(r); } });
+  $('rList').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if(!b || !b.dataset.a) return; const r = rowOf(b), a = b.dataset.a; if(!r) return;
+    if(a === 'open'){ if(openR.has(r.id)){ openR.delete(r.id); if(urls.has(r.id)){ URL.revokeObjectURL(urls.get(r.id)); urls.delete(r.id); } } else openR.add(r.id); rRender(); }
+    else if(a === 'dl'){ saveBlob(r.blob, safeName(r.title) + extOf(r.mime)); }
+    else if(a === 'zip'){ await pack(r); }
+    else if(a === 'del'){ if(confirm('¿Eliminar «' + r.title + '»? No se puede deshacer. Si es importante, descarga antes el «Paquete .zip».')){ if(urls.has(r.id)){ URL.revokeObjectURL(urls.get(r.id)); urls.delete(r.id); } openR.delete(r.id); await rDel(r.id).catch(() => {}); await rLoad(); } }
+    else if(a === 'seek'){ const au = b.closest('.rc').querySelector('audio'); if(au){ au.currentTime = +b.dataset.t; au.play().catch(() => {}); } }
+    else if(a === 'copysum'){ try{ await navigator.clipboard.writeText(r.summary || ''); rS('Resumen copiado.'); }catch(err){ rS('No pude copiar. Selecciona el texto y cópialo.', true); } }
+    else if(a === 'ai'){ await resumir(r, b); }
+    else if(a === 'toSample'){ await toSample(r); }
+  });
+  $('rSearch').addEventListener('input', rRender); $('rFilter').addEventListener('change', rRender);
+
+  /* ----- exportar ----- */
+  async function pack(r){
+    const base = safeName(r.title), md = new Blob([mdOf(r)], {type:'text/markdown'});
+    if(window.JSZip){
+      const z = new JSZip(); z.file(base + extOf(r.mime), r.blob); z.file(base + '.md', md);
+      saveBlob(await z.generateAsync({type:'blob'}), base + '.zip'); rS('Paquete descargado: audio + resumen en texto.');
+    }else{
+      saveBlob(r.blob, base + extOf(r.mime)); setTimeout(() => saveBlob(md, base + '.md'), 500);
+      rS('Sin internet no pude armar el .zip; descargué el audio y el texto por separado.');
+    }
+  }
+  async function folderCopy(r){
+    if(!dirH || !(await folderReady(true))) return false;
+    const d = await dirH.getDirectoryHandle('Grabaciones', {create:true}), base = safeName(r.title) + '-' + new Date(r.created).toISOString().slice(0,10);
+    for(const [name, data] of [[base + extOf(r.mime), r.blob], [base + '.md', new Blob([mdOf(r)], {type:'text/markdown'})]]){
+      const fh = await d.getFileHandle(name, {create:true}), w = await fh.createWritable(); await w.write(data); await w.close();
+    }
+    return true;
+  }
+  async function toSample(r){
+    if((r.dur || 0) > 900){ rS('Esta grabación dura ' + fmtT(r.dur) + '. El editor de samples trabaja con audios de hasta 15 minutos; usa una más corta.', true); return; }
+    try{
+      rS('Preparando el audio para el editor…');
+      const ab = await ac().decodeAudioData(await r.blob.arrayBuffer());
+      tab('smp'); setBuffer(ab, 'Cargué «' + r.title + '» en el editor. Elige el fragmento que quieras.');
+    }catch(err){ rS('No pude convertir ese audio para el editor.', true); }
+  }
+
+  /* ----- resumen con IA ----- */
+  const SYS = 'Eres un asistente para un artista y gestor cultural. Recibes los datos de una grabación (una idea, una reunión creativa o una reunión organizacional): título, tipo, fecha, duración, momentos marcados por el usuario, notas y la transcripción. Responde en español claro, con estas secciones: Resumen (3 a 5 líneas), Ideas clave, Decisiones, Tareas pendientes (con responsable y fecha solo si se mencionan) y Preguntas abiertas. No inventes nada que no esté en el texto; si una sección no aplica escribe «No se mencionó». Usa los momentos marcados como pistas de lo importante. La transcripción puede tener errores de reconocimiento de voz: interprétalos con criterio.';
+  try{ $('aiKey').value = localStorage.getItem('cap_clave') || ''; const m = localStorage.getItem('cap_model'); if(m) $('aiModel').value = m; }catch(e){}
+  $('aiKey').addEventListener('change', () => { try{ localStorage.setItem('cap_clave', $('aiKey').value.trim()); }catch(e){} });
+  $('aiModel').addEventListener('change', () => { try{ localStorage.setItem('cap_model', $('aiModel').value); }catch(e){} });
+  async function resumir(r, btn){
+    const key = (window.IA_CLAVE && !/^PEGA/.test(window.IA_CLAVE)) ? window.IA_CLAVE : $('aiKey').value.trim();
+    if(!key){ $('aiSet').open = true; rS('Falta tu clave de la API. Pégala en «Ajustes del resumen con IA» (abajo).', true); return; }
+    if(!(r.transcript || '').trim() && !(r.notes || '').trim() && !(r.markers && r.markers.length)){ rS('Para resumir necesito algo de texto: pega la transcripción, escribe notas o marca momentos al grabar.', true); return; }
+    let tr = (r.transcript || '').trim(), cut = '';
+    if(tr.length > 60000){ tr = tr.slice(0, 60000); cut = '\n(La transcripción se cortó por ser muy larga.)'; }
+    const texto = ['Título: ' + r.title, 'Tipo: ' + r.type, 'Fecha: ' + fmtDate(r.created), 'Duración: ' + fmtT(r.dur || 0), '',
+      'Momentos marcados:', (r.markers && r.markers.length ? r.markers.map(m => '- [' + fmtT(m.t) + '] ' + (m.l || '(sin nota)')).join('\n') : '(ninguno)'), '',
+      'Notas:', (r.notes || '(sin notas)'), '', 'Transcripción:', (tr || '(sin transcripción)') + cut].join('\n');
+    btn.disabled = true; const old = btn.textContent; btn.textContent = 'Resumiendo…'; rS('Enviando ' + texto.length.toLocaleString('es') + ' caracteres a Claude…');
+    try{
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'Content-Type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({model: $('aiModel').value, max_tokens:1500, system:SYS, messages:[{role:'user', content:texto}]})});
+      const j = await resp.json();
+      if(!resp.ok) throw new Error(resp.status === 401 ? 'La clave no es válida. Revísala en platform.claude.com.' : ((j.error && j.error.message) || 'Error de la API'));
+      r.summary = (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n').trim();
+      await saveRec(r); rRender(); rS('Resumen listo. Puedes editarlo.');
+    }catch(err){ rS(err.message === 'Failed to fetch' ? 'No pude conectar. Revisa tu internet.' : err.message, true); rRender(); }
+  }
+
+  /* ----- arranque del grabador ----- */
+  fillDevices();
+  tab((() => { try{ return localStorage.getItem('cap_tab') === 'smp' ? 'smp' : 'rec'; }catch(e){ return 'rec'; } })());
+  recover().then(async n => { await rLoad(); if(n) rS('Recuperé ' + n + ' grabación' + (n > 1 ? 'es' : '') + ' que se interrumpió. Está en «Mis grabaciones».'); });
+
+  resize(); renderBank(); loadBank();
+})();
+</script>
+</body>
+</html>

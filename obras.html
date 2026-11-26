@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mis obras musicales</title>
+<style>
+:root{--bg:#F2F3EF;--surface:#FFFFFF;--ink:#18262E;--muted:#68777D;--line:#E0E4DF;--accent:#2D6A86;--accent-soft:#E3EEF3;--warm:#C8923A;--warm-soft:#F7EBD4;--on-accent:#FFFFFF;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0F191E;--surface:#16232A;--ink:#E8EDEA;--muted:#8FA0A6;--line:#25353D;--accent:#7BBAD6;--accent-soft:#1D3641;--warm:#E0AE5C;--warm-soft:#33291A;--on-accent:#0F191E}}
+
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:84px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:400;margin:0}
+header{max-width:1280px;margin:0 auto;padding:56px 24px 8px}
+header h1{font-size:clamp(36px,6vw,60px);line-height:1.05;letter-spacing:-.02em}
+header p{margin:14px 0 0;color:var(--muted);font-size:17px;max-width:46ch}
+.stats{display:flex;gap:28px;margin-top:22px;flex-wrap:wrap}
+.stats b{font:400 30px Fraunces,Georgia,serif;color:var(--accent);margin-right:8px}
+.stats span{color:var(--muted);font-size:14px}
+.bar{max-width:1280px;margin:0 auto;padding:16px 24px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bar .sp{flex:1}
+button{font:inherit;font-size:14px;font-weight:500;cursor:pointer;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 18px}
+button:hover{border-color:var(--accent)}
+button.main,button.main:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+button:disabled,button:disabled:hover{opacity:.45;cursor:default;border-color:var(--line)}
+button.main:disabled,button.main:disabled:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+input,select,textarea{font:inherit;font-size:15px;color:inherit;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--bg);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.bar input,.bar select{width:auto;background:var(--surface);border-radius:99px;padding:9px 18px}.bar #q{min-width:240px}
+#aviso{max-width:1280px;margin:24px auto;padding:0 24px}
+.msg{background:var(--surface);border:1px dashed var(--line);border-radius:20px;padding:40px;text-align:center;color:var(--muted)}.msg b{color:var(--ink)}
+#grid{max-width:1280px;margin:0 auto;padding:16px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.o{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .2s}
+.o:hover{border-color:var(--accent);transform:translateY(-2px)}
+.cv{aspect-ratio:1;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font:400 60px Fraunces,Georgia,serif;position:relative}
+.cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cb{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.cb h3{font-family:Manrope,system-ui,sans-serif;font-weight:600;font-size:17px;line-height:1.3}
+.cb small{color:var(--muted)}
+.ch{display:flex;gap:5px;flex-wrap:wrap}
+.ch span{font-size:12px;border-radius:99px;padding:2px 10px;background:var(--bg);color:var(--muted)}
+.ch .ok{background:var(--accent-soft);color:var(--accent)}
+.ch .no{background:var(--warm-soft);color:var(--warm)}
+.ac{display:flex;gap:6px;margin-top:auto;padding-top:8px;flex-wrap:wrap}.ac button{padding:5px 14px;font-size:13.5px}
+.vsel{display:flex;align-items:center;gap:6px}.vsel button{padding:0 14px;font-size:20px;line-height:1.3}
+.vsel span{flex:1;text-align:center;font-weight:600;font-size:13.5px;color:var(--accent)}
+#player{position:fixed;left:0;right:0;bottom:0;background:var(--surface);color:var(--ink);border-top:1px solid var(--line);padding:12px 24px;display:none;align-items:center;gap:16px;z-index:5}
+#player audio{flex:1;min-width:0;height:36px}
+#player b{font:400 18px Fraunces,Georgia,serif;white-space:nowrap;max-width:36vw;overflow:hidden;text-overflow:ellipsis}
+dialog{border:1px solid var(--line);border-radius:24px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,94vw);max-height:92vh}
+dialog::backdrop{background:rgba(15,25,30,.45)}
+form{padding:28px}form h2{font-size:26px;margin-bottom:4px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.w{grid-column:1/3}
+label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:12px 0 4px}
+.hint{color:var(--muted);font-weight:400}
+.fa{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+#toast.on{opacity:1}
+@media(max-width:600px){.g{grid-template-columns:1fr}.w{grid-column:1}#player b{display:none}}
+.lz{font-size:13px;color:var(--muted)}.lz b{color:var(--ink);user-select:all}
+.pend{color:var(--warm);font-weight:600}
+@media (prefers-reduced-motion:reduce){.o,#toast{transition:none}.o:hover{transform:none}}
+
+/* ===== Tema: mismo look de Splits y Contratos (solo aspecto, no toca el funcionamiento) ===== */
+:root{--bg:#0a0a0c;--surface:#141417;--ink:#f3efe6;--muted:#9b978d;--line:#2b2b31;--accent:#d9a441;--accent-soft:rgba(217,164,65,.13);--warm:#f0c36a;--warm-soft:rgba(240,195,106,.14);--on-accent:#14110a;color-scheme:dark}
+body,button,input,select,textarea,.cb h3{font-family:"Helvetica Neue",Arial,sans-serif}
+h1,h2,h3,.stats b,.cv,#player b{font-family:"Helvetica Neue",Arial,sans-serif}
+header h1{font-size:clamp(42px,8vw,84px);line-height:.95;letter-spacing:-.045em;font-weight:800}
+h2,h3{font-weight:700;letter-spacing:-.02em}
+.stats b{font-weight:800}
+button{border-radius:8px}
+button.main,button.on{font-weight:700}
+input,select,textarea{border-radius:8px;background:#0e0e11}
+.bar input,.bar select{border-radius:8px;background:#0e0e11}
+.o,form,.card,.tw,.vacio,.msg,dialog{border-radius:14px}
+.top select{border-radius:8px}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog#dlgRep{width:min(820px,96vw)}
+.rsel{display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.ri{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#0e0e11}
+.ri .t{flex:1;min-width:0}.ri .t b{display:block;font-size:14px}.ri .t small{color:var(--muted)}
+.ri button{padding:3px 10px;font-size:13px}
+.rcat{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:6px}
+.rcat>div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:14px}
+.perfil{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:15px}.perfil b{color:var(--ink)}.perfil button{padding:4px 14px;font-size:13px}
+.rcat>div:last-child{border-bottom:0}.rcat button{padding:3px 12px;font-size:13px}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script></head><body>
+<header><h1>Mis obras musicales</h1><p>Partitura, carátula y audio de cada obra en un solo lugar.</p><div class="perfil" id="perfil"></div><div class="stats" id="stats"></div></header>
+<div class="bar"><button class="main" id="con">Conectar carpeta de obras</button><button id="nuevo" disabled>Agregar obra</button><button id="dm" style="display:none">Descargar datos</button><button id="impx" disabled>Importar repertorio (Excel)</button><button id="rep" disabled>Armar repertorio</button><input type="file" id="xfile" accept=".xlsx" hidden><input type="file" id="dirin" webkitdirectory multiple hidden><span class="sp"></span>
+<input id="q" type="search" placeholder="Buscar por nombre o número" aria-label="Buscar">
+<select id="fl" aria-label="Filtrar"><option value="">Todas las obras</option><option value="p">Sin partitura</option><option value="a">Sin audio</option><option value="i">Sin carátula</option><option value="d">Sin registro DNDA</option><option value="s">ISRC pendiente</option><option value="c">Completas</option></select>
+<select id="ord" aria-label="Ordenar"><option value="n">Por número</option><option value="t">Por nombre</option><option value="r">Más recientes</option></select></div>
+<div id="aviso"></div><div id="grid"></div>
+<div id="player"><b id="pt"></b><audio id="au" controls></audio><button id="px">Cerrar</button></div>
+<dialog id="dlg"><form id="form" autocomplete="off"><h2 id="dt"></h2><input type="hidden" id="fi"><div class="g">
+<div><label>Número</label><input id="f_num" type="number" min="1" required></div><div><label>Título</label><input id="f_titulo" required></div>
+<div class="w"><label>Partitura <span class="hint">(PDF; si el nombre lleva «DRA» se toma como registro DNDA)</span> <span class="hint" id="h_pdf"></span></label><input id="f_pdf" type="file" accept=".pdf"></div>
+<div class="w"><label>Audio <span class="hint">(WAV o MP3)</span> <span class="hint" id="h_aud"></span></label><input id="f_aud" type="file" accept=".wav,.mp3,.m4a,.flac"></div>
+<div class="w"><label>Carátula <span class="hint">(JPG o PNG)</span> <span class="hint" id="h_img"></span></label><input id="f_img" type="file" accept=".jpg,.jpeg,.png,.webp"></div>
+<div><label>Género o ritmo</label><input id="f_genero" placeholder="Zamba, huayno, balada…"></div><div><label>Tonalidad</label><input id="f_tono" placeholder="Am, D…"></div>
+<div><label>Tempo (BPM)</label><input id="f_bpm" type="number" min="1"></div><div><label>Año</label><input id="f_anio" type="number" min="1900" max="2100"></div>
+<div><label>Estado</label><select id="f_estado"><option>Terminada</option><option>En proceso</option><option>Idea</option></select></div>
+<div><label>Registro de derechos (DNDA)</label><select id="f_dnda"><option>No registrada</option><option>En trámite</option><option>Registrada</option></select></div>
+<div><label>Compositor(es)</label><input id="f_compositor"></div><div><label>Carnet SAYCO</label><input id="f_carnet"></div><div class="w"><label>Autores o intérpretes</label><input id="f_autor"></div><div class="w"><label>Notas</label><textarea id="f_notas" rows="3"></textarea></div></div>
+<div class="fa"><button type="button" id="fc">Cancelar</button><button class="main" id="fg">Guardar</button></div></form></dialog>
+<dialog id="dlgPf"><div style="padding:28px"><h2>Mi perfil de compositor</h2><p class="lz" style="margin:4px 0 0">Estos datos salen en la parte de arriba de la página y se usan en cada obra y en el certificado de repertorio.</p>
+<label>Nombre del compositor / intérprete</label><input id="pf_n"><label>Carnet SAYCO</label><input id="pf_c" placeholder="Número de carnet">
+<div class="fa"><button type="button" id="pf_x">Cancelar</button><button class="main" type="button" id="pf_g">Guardar perfil</button></div></div></dialog>
+<dialog id="dlgRep"><div style="padding:28px"><h2>Armar repertorio</h2><p class="lz" style="margin:4px 0 0">Elige las canciones del concierto y descarga el certificado (PDF) o el Excel.</p>
+<label>Cargar un repertorio anterior</label><select id="r_prev"><option value="">— Nuevo repertorio —</option></select>
+<div class="g"><div class="w"><label>Nombre del evento</label><input id="r_evento"></div>
+<div><label>Fecha</label><input id="r_fecha" type="date"></div><div><label>Lugar (ciudad y sitio)</label><input id="r_lugar"></div>
+<div><label>Artista o agrupación</label><input id="r_agr"></div><div><label>Responsable</label><input id="r_resp"></div>
+<div><label>C.C. / NIT del responsable <span class="hint">(opcional)</span></label><input id="r_cc"></div><div><label>N.º del documento</label><input id="r_num"></div></div>
+<label>Canciones del repertorio (<span id="r_n">0</span>)</label><div class="rsel" id="r_lista"></div>
+<label>Agregar desde mi catálogo</label><input id="r_q" type="search" placeholder="Buscar por nombre o número"><div class="rcat" id="r_cat"></div>
+<label>Agregar una canción de otro autor</label><div class="g"><div><input id="r_mt" placeholder="Título"></div><div><input id="r_mc" placeholder="Compositor(es)"></div><div class="w"><input id="r_mn" placeholder="Carnet SAYCO del compositor (opcional)"></div></div><div style="margin-top:8px"><button type="button" id="r_madd">Agregar al repertorio</button></div>
+<label>Logo en el documento <span class="hint">(opcional)</span></label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input id="r_logo" type="file" accept="image/*" style="width:auto"><img id="r_lp" alt="Logo" style="max-height:36px;background:#fff;border-radius:6px;padding:3px;display:none"><button type="button" id="r_lx" style="display:none">Quitar logo</button></div>
+<div class="fa" style="flex-wrap:wrap"><button type="button" id="r_c">Cerrar</button><button class="main" type="button" id="r_z">Descargar todo (ZIP)</button></div></div></dialog>
+<div id="toast" role="status"></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const AUD=/\.(wav|mp3|m4a|flac|aiff?|ogg)$/i,IMG=/\.(jpe?g|png|webp)$/i,PDF=/\.pdf$/i,JSONF="obras-datos.json",LS="mis-obras-datos";
+let root=null,obras=[],meta={},urls={},obs;
+const idb=(m,v)=>new Promise((ok,no)=>{const q=indexedDB.open("mis-obras",1);q.onupgradeneeded=()=>q.result.createObjectStore("h");q.onerror=()=>no();q.onsuccess=()=>{const st=q.result.transaction("h",m=="get"?"readonly":"readwrite").objectStore("h"),r=m=="get"?st.get("r"):st.put(v,"r");r.onsuccess=()=>ok(r.result);r.onerror=()=>no()}});
+function aviso(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2400)}
+function msg(h){$("aviso").innerHTML=h?`<div class="msg">${h}</div>`:""}
+async function permiso(h){let p=await h.queryPermission({mode:"readwrite"});if(p!=="granted")p=await h.requestPermission({mode:"readwrite"});return p==="granted"}
+const nat=(a,b)=>a.name.localeCompare(b.name,"es",{numeric:true}),bs=n=>n.replace(/\.[^.]+$/,"").toLowerCase(),DRA=n=>/(^|[^a-z])dra([^a-z]|$)/i.test(bs(n)),vn=(a,j)=>{const m=a.name.match(/^\s*\d+\.(\d+)/);return m?+m[1]:j+1},vl=(a,j)=>"Versión "+vn(a,j);
+async function mk(name,h,fs){
+ const L=re=>fs.filter(f=>re.test(f.name)).sort(nat),pd=L(PDF),pdfs=pd.filter(f=>!DRA(f.name)),dra=pd.find(f=>DRA(f.name))||null,auds=L(AUD),imgs=L(IMG);
+ const m=name.match(/^(\d+)(?:\s*-\s*\d+)?\s*[.\-)]*\s*(.*)$/),rango=/^\d+\s*-\s*\d+$/.test(name.trim());
+ const idx=auds.length>1&&imgs.length==auds.length&&!auds.some(a=>imgs.some(i=>bs(i.name)==bs(a.name)));
+ auds.forEach((a,j)=>a.img=imgs.find(i=>bs(i.name)==bs(a.name))||(idx?imgs[j]:null));
+ const main=imgs.find(i=>bs(i.name)==name.toLowerCase())||imgs.find(i=>!auds.some(a=>a.img===i))||imgs[0]||null;
+ let mod=0;for(const x of fs){const t=(await x.h.getFile()).lastModified;if(t>mod)mod=t}
+ obras.push({folder:name,dir:h,num:m?+m[1]:99999,titulo:rango?"Obras "+name.trim():(m?m[2]:name)||name,pdfs,pdf:pdfs[0]||null,dra,auds,aud:auds[0]||null,imgs,img:main,mod});
+}
+async function scan(){
+ obras=[];
+ for await(const[name,h]of root.entries()){
+  if(h.kind!=="directory"||name.startsWith("."))continue;
+  const fs=[];for await(const[fn,fh]of h.entries())if(fh.kind==="file"&&!fn.startsWith("."))fs.push({name:fn,h:fh});
+  await mk(name,h,fs)}
+ try{meta=JSON.parse(await(await(await root.getFileHandle(JSONF)).getFile()).text())}catch(e){meta={}}
+}
+async function scanFiles(files){
+ obras=[];const g={};let js=null,ls={},fm={};
+ for(const f of files){const p=f.webkitRelativePath.split("/");
+  if(p.length==2&&p[1]==JSONF)js=f;
+  else if(p.length==3&&!p[2].startsWith("."))(g[p[1]]=g[p[1]]||[]).push({name:p[2],h:{getFile:async()=>f}})}
+ for(const n in g)if(!n.startsWith("."))await mk(n,null,g[n]);
+ try{fm=JSON.parse(await js.text())}catch(e){}try{ls=JSON.parse(localStorage.getItem(LS))||{}}catch(e){}
+ meta={...fm};for(const k in ls){const a=fm[k]||{},b=ls[k]||{};meta[k]={...a,...b};if(!b.compositor&&a.compositor)meta[k].compositor=a.compositor}}
+function bajar(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function lista(){
+ const q=$("q").value.trim().toLowerCase(),fl=$("fl").value,o=$("ord").value;
+ let L=obras.map((x,i)=>[x,i]).filter(([x])=>(!q||(x.num+" "+x.titulo).toLowerCase().includes(q))&&(!fl||(fl=="s"?sinIsrc(x):fl=="d"?!x.dra:fl=="p"?!x.pdf:fl=="a"?!x.aud:fl=="i"?!x.img:x.pdf&&x.aud&&x.img)));
+ L.sort((a,b)=>o=="t"?a[0].titulo.localeCompare(b[0].titulo,"es"):o=="r"?b[0].mod-a[0].mod:a[0].num-b[0].num);return L}
+function render(){
+ perfilVista();const n=obras.length,c=k=>obras.filter(x=>x[k]).length;
+ $("stats").innerHTML=n?[[n,"obras"],[c("pdf"),"con partitura"],[c("aud"),"con audio"],[c("img"),"con carátula"],[c("dra"),"con registro DNDA"],[obras.filter(x=>{const L=(meta[x.folder]||{}).lanz||[];return L.length&&L.every(l=>l.isrc)}).length,"con ISRC completo"],[obras.filter(x=>x.pdf&&x.aud&&x.img).length,"completas"]].map(([a,b])=>`<div><b>${a}</b><span>${b}</span></div>`).join(""):"";
+ const L=lista();
+ if(!L.length){$("grid").innerHTML="";return msg(n?"No hay obras que coincidan con tu búsqueda.":"")}
+ msg("");
+ $("grid").innerHTML=L.map(([x,i])=>card(x,i)).join("");
+ obs&&obs.disconnect();obs=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;obs.unobserve(e.target);pintar(e.target)}),{rootMargin:"300px"});
+ document.querySelectorAll(".cv").forEach(e=>obs.observe(e));
+}
+const sel={},cj=x=>Math.min(sel[x.folder]||0,Math.max(x.auds.length-1,0)),vc=x=>x.auds[cj(x)]&&x.auds[cj(x)].img||x.img;
+async function pintar(c){const x=obras[+c.dataset.i],f=x&&vc(x),o=c.querySelector("img");if(o)o.remove();if(!f)return;
+ try{const k=x.folder+"|"+f.name;urls[k]=urls[k]||URL.createObjectURL(await f.h.getFile());const im=new Image();im.alt="Carátula de "+x.titulo;im.src=urls[k];c.appendChild(im)}catch(z){}}
+function card(x,i){const m=meta[x.folder]||{},d=[m.genero,m.tono,m.bpm?m.bpm+" BPM":"",m.anio].filter(Boolean).join(" · "),vs=x.auds,j=cj(x),
+  ch=(k,t)=>`<span class="${x[k]?"ok":"no"}">${x[k]?t:"Sin "+t.toLowerCase()}</span>`,cur=lzc(x),dn=x.dra||m.rep&&m.rep.dra?"Registrada":(m.dnda&&m.dnda!="No registrada"?m.dnda:"");
+ return`<article class="o" data-i="${i}"><div class="cv" data-i="${i}">${x.num<99999?x.num:"♪"}</div><div class="cb"><h3>${x.num<99999?x.num+". ":""}${esc(x.titulo)}</h3>${d?`<small>${esc(d)}</small>`:""}
+  <div class="ch">${ch("pdf","Partitura")}${vs.length>1?`<span class="ok">${vs.length} versiones</span>`:ch("aud","Audio")}${ch("img","Carátula")}${dn?`<span class="ok">DNDA: ${esc(dn)}</span>`:""}${m.rep&&m.rep.sayco?`<span class="ok">SAYCO</span>`:""}${m.rep&&m.rep.maq?`<span>${m.rep.maq=="F"?"Full":"Maqueta"}</span>`:""}</div>
+  ${cur?`<div class="lz">${cur.dist?esc(cur.dist)+" · ":""}${cur.isrc?`ISRC <b>${esc(cur.isrc)}</b>`:`<span class="pend">Sin ISRC</span>`}</div>`:""}
+  ${vs.length>1?`<div class="vsel"><button data-a="prev" data-i="${i}" aria-label="Versión anterior">‹</button><span title="${esc(vs[j].name)}">${vl(vs[j],j)} de ${vs.length}</span><button data-a="next" data-i="${i}" aria-label="Versión siguiente">›</button></div>`:""}
+  <div class="ac"><button data-a="play" data-i="${i}"${x.aud?"":" disabled"}>${vs.length>1?"Escuchar "+vl(vs[j],j).toLowerCase():"Escuchar"}</button><button data-a="pdf" data-i="${i}"${x.pdf?"":" disabled"}>Partitura</button>${x.dra?`<button data-a="dra" data-i="${i}">Registro DNDA</button>`:""}${cur&&cur.link?`<button data-a="lnk" data-i="${i}">Enlace</button>`:""}${cur&&cur.isrc?`<button data-a="isrc" data-i="${i}">Copiar ISRC</button>`:""}<button data-a="ed" data-i="${i}">Editar</button></div></div></article>`}
+function refrescar(i){const a=document.querySelector('.o[data-i="'+i+'"]');if(!a)return;a.outerHTML=card(obras[i],i);const c=document.querySelector('.o[data-i="'+i+'"] .cv');if(c)pintar(c)}
+async function conectar(h){root=h;await idb("put",h).catch(()=>0);msg("Leyendo tus carpetas…");await scan();$("nuevo").disabled=$("impx").disabled=$("rep").disabled=false;$("con").textContent="Carpeta: "+h.name;render();if(!obras.length)msg("Esta carpeta no tiene subcarpetas de obras. Elige la carpeta que contiene <b>1. Azul</b>, <b>2. Boquita de Melón</b>, etc.")}
+$("con").onclick=async()=>{
+ if(!window.showDirectoryPicker)return $("dirin").click();
+ try{const g=await idb("get").catch(()=>0);let h=null;
+  if(g&&!root&&await permiso(g))h=g;
+  if(!h){h=await showDirectoryPicker({mode:"readwrite"})}
+  await conectar(h)}catch(e){if(e.name!="AbortError")msg("No se pudo abrir la carpeta: "+esc(e.message))}};
+document.addEventListener("click",async e=>{const d=e.target.dataset,i=+d.i;if(!d.a)return;const x=obras[i];
+ if(d.a=="prev"||d.a=="next"){const n=x.auds.length;sel[x.folder]=(cj(x)+(d.a=="next"?1:n-1))%n;return refrescar(i)}
+ if(d.a=="play"){const j=cj(x),a=x.auds[j];try{const f=await a.h.getFile();if($("au").dataset.u)URL.revokeObjectURL($("au").dataset.u);const u=URL.createObjectURL(f);$("au").dataset.u=u;$("au").src=u;$("pt").textContent=x.titulo+(x.auds.length>1?" · "+vl(a,j):"");$("player").style.display="flex";$("au").play()}catch(z){aviso("No se pudo abrir el audio")}}
+ else if(d.a=="pdf"||d.a=="dra"){const w=window.open("","_blank");try{w.location=URL.createObjectURL(await(d.a=="dra"?x.dra:x.pdf).h.getFile())}catch(z){w&&w.close();aviso("No se pudo abrir el archivo")}}
+ else if(d.a=="ed")abrir(i);
+ else if(d.a=="lnk"){const c=lzc(x);if(c&&c.link)window.open(c.link,"_blank")}
+ else if(d.a=="isrc"){const c=lzc(x);try{await navigator.clipboard.writeText(c.isrc);aviso("ISRC copiado: "+c.isrc)}catch(z){aviso("No se pudo copiar")}}});
+$("px").onclick=()=>{$("au").pause();$("player").style.display="none"};
+["q","fl","ord"].forEach(k=>$(k).oninput=render);
+const FM=[["genero"],["tono"],["bpm"],["anio"],["estado"],["dnda"],["autor"],["compositor"],["carnet"],["notas"]];
+function abrir(i){const o=i>=0?obras[i]:null,m=o&&meta[o.folder]||{};$("form").reset();$("fi").value=i;
+ $("dt").textContent=o?"Editar: "+o.titulo:"Nueva obra";
+ const mx=Math.max(0,...obras.filter(x=>x.num<99999).map(x=>x.num));
+ $("f_num").value=o?o.num:mx+1;$("f_titulo").value=o?o.titulo:"";$("f_num").disabled=$("f_titulo").disabled=!!o;
+ FM.forEach(([k])=>{if(m[k]!=null)$("f_"+k).value=m[k]});
+ if(!$("f_compositor").value)$("f_compositor").value=o?comp(o):(PF().compositor||"");
+ if(!$("f_carnet").value)$("f_carnet").value=o?carn(o):(PF().carnet||"");
+ ["pdf","aud","img"].forEach(k=>{const L=o?o[k+"s"]:[];$("h_"+k).textContent=!L.length?"":k=="aud"?"· tiene "+L.length+" versión(es); el archivo que elijas se agrega como versión nueva":L.length>1?"· ya tiene "+L.length+" archivos; el nuevo se agrega":"· ya tiene: "+L[0].name+" (elige otro para reemplazarlo)"});
+ $("dlg").showModal()}
+$("nuevo").onclick=()=>abrir(-1);$("fc").onclick=()=>$("dlg").close();
+async function escribir(dir,nombre,f){const w=await(await dir.getFileHandle(nombre,{create:true})).createWritable();await w.write(f);await w.close()}
+function destino(o,k,folder,f){const ext=f.name.match(/\.[^.]+$/)[0].toLowerCase();
+ if(k=="pdf"&&DRA(f.name))return{nm:folder+"_DRA"+ext,borrar:o&&o.dra?o.dra.name:null,dra:1};
+ const L=o?o[k+"s"]:[];
+ if(k=="aud"&&L.length){const n=Math.max(L.length,...L.map(a=>+((a.name.match(/^\s*\d+\.(\d+)/)||[])[1])||0))+1;return{nm:`${o.num}.${n} ${o.titulo}${ext}`}}
+ return{nm:folder+ext,borrar:L.length==1?L[0].name:null}}
+async function compatGuardar(){
+ const i=+$("fi").value,o=i>=0?obras[i]:null,t=$("f_titulo").value.trim().replace(/[\\\/:*?"<>|]/g,"-"),folder=o?o.folder:$("f_num").value+". "+t;
+ if(!o&&obras.some(x=>x.folder.toLowerCase()==folder.toLowerCase()))return alert("Ya existe la obra «"+folder+"». Cambia el número o el título.");
+ const x=o||{folder,dir:null,num:+$("f_num").value,titulo:t,pdf:null,aud:null,img:null,dra:null,pdfs:[],auds:[],imgs:[],mod:Date.now()},sub=[];
+ for(const[id,k]of[["f_pdf","pdf"],["f_aud","aud"],["f_img","img"]]){const f=$(id).files[0];if(!f)continue;const d=destino(o,k,folder,f),fo={name:d.nm,h:{getFile:async()=>f}};if(d.dra)x.dra=fo;else{x[k+"s"]=(d.borrar?[]:x[k+"s"].filter(y=>y.name!==d.nm)).concat(fo).sort(nat);x[k]=x[k+"s"][0]}sub.push([f,d.nm])}
+ if(!o)obras.push(x);
+ const m={};FM.forEach(([k])=>m[k]=$("f_"+k).value.trim());if(m.compositor===PF().compositor)m.compositor="";if(m.carnet===PF().carnet)m.carnet="";meta[folder]={...meta[folder],...m};try{localStorage.setItem(LS,JSON.stringify(meta))}catch(z){}
+ render();$("dlg").close();
+ for(const[f,nm]of sub){bajar(f,nm);await new Promise(r=>setTimeout(r,600))}
+ alert(sub.length?"Se descargaron "+sub.length+" archivo(s). Muévelos a la carpeta «"+folder+"» dentro de tu carpeta de obras (créala si no existe). Luego pulsa «Descargar datos» y guarda obras-datos.json en tu carpeta de obras.":"Datos guardados en este navegador. Pulsa «Descargar datos» y guarda obras-datos.json en tu carpeta de obras para no perderlos.")}
+$("dirin").onchange=async e=>{const fs=[...e.target.files];e.target.value="";if(!fs.length)return;
+ msg("Leyendo tus carpetas…");root=null;await scanFiles(fs);$("nuevo").disabled=$("impx").disabled=$("rep").disabled=false;$("dm").style.display="";
+ $("con").textContent="Carpeta: "+fs[0].webkitRelativePath.split("/")[0];render();
+ if(!obras.length)msg("No encontré subcarpetas de obras. Elige la carpeta que <b>contiene</b> 1. Azul, 2. Boquita de Melón, etc.")};
+const DISN={TUSTREAMS:"TuStreams",ONERPM:"ONErpm",ROUTENOTE:"RouteNote",SOUNDON:"SoundOn"},ISRC=/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/,RANGO=/^\d+\s*-\s*\d+$/;
+const dsit=u=>{u=String(u||"").toLowerCase();return u.includes("tustreams")?"TuStreams":u.includes("onerpm")?"ONErpm":u.includes("routenote")?"RouteNote":u.includes("soundon")?"SoundOn":""},
+ sinIsrc=x=>{const L=(meta[x.folder]||{}).lanz||[];return L.length>0&&L.some(l=>!l.isrc)},
+ pnum=v=>{if(v instanceof Date){const d=new Date(v.getTime()+432e5);return[d.getDate(),d.getMonth()+1]}const m=String(v).trim().replace(",",".").match(/^(\d+)(?:\.(\d+))?$/);return m?[+m[1],m[2]?+m[2]:0]:null},
+ lzc=x=>{const L=(meta[x.folder]||{}).lanz||[],vs=x.auds,j=cj(x);return vs.length>1?(L.find(l=>l.v==vn(vs[j],j))||L.find(l=>!l.v)):(L.find(l=>!l.v)||L[0])};
+async function guardarMeta(){
+ if(root){if(!await permiso(root))throw 0;await escribir(root,JSONF,new Blob([JSON.stringify(meta,null,1)],{type:"application/json"}));return"Datos guardados en obras-datos.json."}
+ try{localStorage.setItem(LS,JSON.stringify(meta))}catch(z){}return"Pulsa «Descargar datos» y guarda obras-datos.json en tu carpeta de obras."}
+async function importar(buf){
+ let wb;try{wb=XLSX.read(buf,{type:"array",cellDates:true})}catch(e){return alert("Ese archivo no es un Excel válido.")}
+ const T=s=>String(s==null?"":s).trim(),U=s=>T(s).toUpperCase(),rows=n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:"",raw:true}),L={},R={},NM={},vistos={},raros=[];let nIsrc=0,nSin=0;
+ for(const n of wb.SheetNames){const r=rows(n),hi=r.findIndex(x=>x.some(c=>U(c)=="NOMBRE CANCION")),hr=r.findIndex(x=>x.some(c=>U(c)=="OBRA"));
+  if(hi>=0){const h=r[hi].map(U),ix=k=>h.findIndex(c=>c.startsWith(k)),a=ix("NUMERO"),b=ix("NOMBRE"),c=ix("SMARTLINK"),d=ix("ISRC"),e=ix("CHECK");
+   for(const f of r.slice(hi+1)){const p=pnum(f[a]);if(!p||!T(f[b]))continue;const isrc=U(f[d]).replace(/\s/g,"");NM[p[0]]=T(f[b]);
+    (L[p[0]]=L[p[0]]||[]).push({v:p[1],dist:DISN[U(n)]||T(n),isrc,link:T(f[c]),check:T(f[e])});
+    if(!isrc)nSin++;else{nIsrc++;if(!ISRC.test(isrc))raros.push(p[0]+(p[1]?"."+p[1]:"")+" "+T(f[b])+": "+isrc);(vistos[isrc]=vistos[isrc]||[]).push(T(f[b]))}}}
+  else if(hr>=0){const h=r[hr].map(U),ix=k=>h.findIndex(c=>c.startsWith(k));
+   for(const f of r.slice(hr+1)){const p=pnum(f[ix("#")]);if(p)R[p[0]]={maq:U(f[ix("MAQUETA")]),sayco:U(f[ix("SAYCO")])=="X",dra:U(f[ix("DRA")])=="X",dist:dsit(f[ix("DISTRIBUIDORA")]),link:T(f[ix("LINK")]),nom:T(f[ix("OBRA")])}}}}
+ if(!Object.keys(R).length)return alert("No encontré la hoja REPERTORIO con las columnas OBRA, SAYCO y DRA.");
+ for(const k in R){const r=R[k];if(!L[k]&&(r.link||r.dist))L[k]=[{v:0,dist:r.dist,isrc:"",link:r.link,check:""}]}
+ const sin=[];let act=0;
+ for(const k of new Set([...Object.keys(R),...Object.keys(L)])){const x=obras.find(o=>o.num==k&&!RANGO.test(o.folder.trim()));
+  if(!x){if(R[k]&&(R[k].dist||R[k].link)||L[k])sin.push(k+" "+(NM[k]||(R[k]||{}).nom||""));continue}
+  const r=R[k]||{};meta[x.folder]={...meta[x.folder],rep:{maq:r.maq,sayco:r.sayco,dra:r.dra},lanz:L[k]||[]};act++}
+ let nota;try{nota=await guardarMeta()}catch(z){nota="No pude guardar los datos: pulsa «Descargar datos»."}
+ render();const rp=Object.entries(vistos).filter(([,v])=>v.length>1).map(([k,v])=>k+" ("+v.join(", ")+")");
+ alert(["Excel importado.","• Obras actualizadas: "+act,"• ISRC leídos: "+nIsrc+" · lanzamientos sin ISRC: "+nSin,sin.length?"• Con distribuidora pero sin carpeta propia: "+sin.join(", "):"",raros.length?"• ISRC con formato raro: "+raros.join("; "):"",rp.length?"• ISRC repetidos: "+rp.join("; "):"",nota].filter(Boolean).join("\n"))}
+$("impx").onclick=()=>window.XLSX?$("xfile").click():alert("Necesito internet para cargar la herramienta de Excel. Conéctate y recarga la página.");
+$("xfile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(f)importar(await f.arrayBuffer())};
+$("dm").onclick=()=>{bajar(new Blob([JSON.stringify(meta,null,1)],{type:"application/json"}),JSONF);alert("Guarda obras-datos.json dentro de tu carpeta de obras (reemplaza el anterior). La próxima vez se cargará solo.")};
+$("form").onsubmit=async e=>{e.preventDefault();if(!root)return compatGuardar().catch(z=>alert(z.message));if(!await permiso(root))return alert("Necesito permiso para escribir en la carpeta.");
+ $("fg").disabled=true;
+ try{const i=+$("fi").value,o=i>=0?obras[i]:null;let folder,dir;
+  if(o){folder=o.folder;dir=o.dir}else{
+   const t=$("f_titulo").value.trim().replace(/[\\\/:*?"<>|]/g,"-");folder=$("f_num").value+". "+t;
+   let ya=false;try{await root.getDirectoryHandle(folder);ya=true}catch(z){}
+   if(ya)throw new Error("Ya existe la carpeta «"+folder+"». Cambia el número o el título.");
+   dir=await root.getDirectoryHandle(folder,{create:true})}
+  for(const[id,k]of[["f_pdf","pdf"],["f_aud","aud"],["f_img","img"]]){const f=$(id).files[0];if(!f)continue;
+   const d=destino(o,k,folder,f);await escribir(dir,d.nm,f);if(d.borrar&&d.borrar!==d.nm)await dir.removeEntry(d.borrar).catch(()=>0)}
+  const m={};FM.forEach(([k])=>m[k]=$("f_"+k).value.trim());if(m.compositor===PF().compositor)m.compositor="";if(m.carnet===PF().carnet)m.carnet="";meta[folder]={...meta[folder],...m};
+  await escribir(root,JSONF,new Blob([JSON.stringify(meta,null,1)],{type:"application/json"}));
+  await scan();render();$("dlg").close();aviso(o?"Cambios guardados":"Obra agregada: "+folder)}
+ catch(z){alert(z.message)}finally{$("fg").disabled=false}};
+(async()=>{if(!window.showDirectoryPicker)return msg("Pulsa <b>Conectar carpeta de obras</b> y elige la carpeta que contiene todas tus obras. Tu navegador te preguntará si quieres «subir» los archivos: acepta, no se copia ni se envía nada a internet.");
+ const g=await idb("get").catch(()=>0);msg(g?`Pulsa <b>Conectar carpeta de obras</b> para volver a abrir <b>${esc(g.name)}</b>.`:"Pulsa <b>Conectar carpeta de obras</b> y elige la carpeta donde están tus obras (1. Azul, 2. Boquita de Melón…).")})();
+
+/* ===== Repertorio para conciertos: certificado PDF y Excel ===== */
+const RK="mis-obras-reps",RP="mis-obras-rep-perfil",RC="mis-obras-consec";
+let REP=[],RLOGO=null;
+const rl=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?f:v}catch(e){return f}},rs=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const PF=()=>meta._perfil||{};
+const comp=x=>{const m=meta[x.folder]||{};return m.compositor||m.autor||PF().compositor||""};
+const carn=x=>{const m=meta[x.folder]||{};if(m.carnet!=null&&m.carnet!=="")return m.carnet;return !(m.compositor||m.autor)||m.compositor===PF().compositor?PF().carnet||"":""};
+function perfilVista(){const p=PF(),e=$("perfil");if(!e)return;if(!root&&!obras.length){e.innerHTML="";return}
+ e.innerHTML=p.compositor?`<span>Compositor / intérprete:</span> <b>${esc(p.compositor)}</b>${p.carnet?` <span>· Carnet SAYCO</span> <b>${esc(p.carnet)}</b>`:""} <button id="pf" type="button">Editar perfil</button>`:`<button id="pf" type="button">Completar mi perfil de compositor</button>`}
+$("perfil").onclick=e=>{if(e.target.id!="pf")return;$("pf_n").value=PF().compositor||"";$("pf_c").value=PF().carnet||"";$("dlgPf").showModal()};
+$("pf_x").onclick=()=>$("dlgPf").close();
+$("pf_g").onclick=async()=>{const n=$("pf_n").value.trim();if(!n)return alert("Escribe el nombre del compositor / intérprete.");meta._perfil={compositor:n,carnet:$("pf_c").value.trim()};
+ $("dlgPf").close();perfilVista();aviso(await guardarMeta().catch(()=>"No pude guardar: pulsa «Descargar datos».")||"Perfil guardado")};
+const hoy=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const fdia=f=>{const[y,m,d]=f.split("-").map(Number),t=new Date(y,m-1,d).toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"});return t.charAt(0).toUpperCase()+t.slice(1)};
+const slug=t=>t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w]+/g,"-").replace(/^-|-$/g,"");
+function rvista(){
+ $("r_n").textContent=REP.length;
+ $("r_lista").innerHTML=REP.map((s,i)=>`<div class="ri"><span>${i+1}.</span><div class="t"><b>${esc(s.t)}</b><small>${s.c?esc(s.c)+(s.n?" · Carnet SAYCO "+esc(s.n):""):"Sin compositor: pulsa ✎ para completarlo"}</small></div><button type="button" data-r="edit" data-i="${i}" aria-label="Editar compositor">✎</button><button type="button" data-r="up" data-i="${i}" aria-label="Subir">↑</button><button type="button" data-r="dn" data-i="${i}" aria-label="Bajar">↓</button><button type="button" data-r="del" data-i="${i}" aria-label="Quitar">✕</button></div>`).join("")||'<small class="lz">Aún no hay canciones.</small>';
+ rcat()}
+function rcat(){
+ const q=$("r_q").value.trim().toLowerCase(),L=obras.filter(x=>!q||(x.num+" "+x.titulo).toLowerCase().includes(q)).sort((a,b)=>a.num-b.num).slice(0,60);
+ $("r_cat").innerHTML=L.map(x=>{const ya=REP.some(s=>s.k===x.folder);return`<div><span>${x.num<99999?x.num+". ":""}${esc(x.titulo)} <small class="lz">${esc(comp(x))}</small></span><button type="button" data-r="add" data-f="${esc(x.folder)}"${ya?" disabled":""}>${ya?"Agregada":"Agregar"}</button></div>`}).join("")||'<div class="lz">Sin resultados.</div>'}
+$("dlgRep").addEventListener("click",e=>{const b=e.target.closest("[data-r]");if(!b)return;const a=b.dataset.r,i=+b.dataset.i;
+ if(a=="up"&&i>0)[REP[i-1],REP[i]]=[REP[i],REP[i-1]];
+ else if(a=="dn"&&i<REP.length-1)[REP[i+1],REP[i]]=[REP[i],REP[i+1]];
+ else if(a=="del")REP.splice(i,1);
+ else if(a=="add"){const x=obras.find(o=>o.folder===b.dataset.f);if(x&&!REP.some(s=>s.k===x.folder))REP.push({k:x.folder,t:x.titulo,c:comp(x),n:carn(x),tono:(meta[x.folder]||{}).tono||"",bpm:(meta[x.folder]||{}).bpm||""})}
+ else if(a=="edit"){const v=prompt("Compositor(es) de «"+REP[i].t+"»",REP[i].c);if(v!==null){const cn=prompt("Carnet SAYCO del compositor (opcional)",v.trim()===PF().compositor?PF().carnet||"":REP[i].n||"");REP[i].c=v.trim();REP[i].n=(cn||"").trim();if(REP[i].k){meta[REP[i].k]={...meta[REP[i].k],compositor:v.trim(),carnet:REP[i].n};guardarMeta().catch(()=>0)}}}
+ rvista()});
+$("r_q").oninput=rcat;
+$("r_madd").onclick=()=>{const t=$("r_mt").value.trim();if(!t)return aviso("Escribe el título de la canción");REP.push({k:null,t,c:$("r_mc").value.trim(),n:$("r_mn").value.trim()});$("r_mt").value=$("r_mc").value=$("r_mn").value="";rvista()};
+function rlogo(u){const i=new Image();i.onload=()=>{const r=Math.min(1,600/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));c.getContext("2d").drawImage(i,0,0,c.width,c.height);
+ RLOGO={d:c.toDataURL("image/png"),w:c.width,h:c.height};try{localStorage.setItem("doc_logo",RLOGO.d)}catch(e){}$("r_lp").src=RLOGO.d;$("r_lp").style.display=$("r_lx").style.display=""};
+ i.onerror=()=>alert("No pude leer esa imagen. Prueba con un PNG o JPG.");i.src=u}
+$("r_logo").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>rlogo(fr.result);fr.readAsDataURL(f)};
+$("r_lx").onclick=()=>{RLOGO=null;try{localStorage.removeItem("doc_logo")}catch(e){}$("r_lp").style.display=$("r_lx").style.display="none";$("r_logo").value=""};
+$("rep").onclick=()=>{
+ const P=rl(RP,{}),H=rl(RK,[]);let G=null;try{G=JSON.parse(localStorage.getItem("doc_ultimo")||"null")}catch(e){}
+ const p0=G&&G.people&&G.people[0]||{};
+ REP=[];$("r_evento").value=$("r_lugar").value="";$("r_q").value="";
+ $("r_agr").value=P.agr||"";$("r_resp").value=P.resp||PF().compositor||p0.n||"";$("r_cc").value=P.cc||p0.c||"";
+ $("r_fecha").value=hoy();$("r_num").value=String(rl(RC,0)+1).padStart(4,"0");
+ $("r_prev").innerHTML='<option value="">— Nuevo repertorio —</option>'+H.map((h,i)=>`<option value="${i}">${esc(h.fecha)} · ${esc(h.evento||"Sin nombre")}</option>`).join("");
+ RLOGO=null;$("r_lp").style.display=$("r_lx").style.display="none";try{const g=localStorage.getItem("doc_logo");if(g)rlogo(g)}catch(e){}
+ rvista();$("dlgRep").showModal()};
+$("r_prev").onchange=()=>{const h=rl(RK,[])[+$("r_prev").value];if(!h)return;
+ $("r_evento").value=h.evento;$("r_lugar").value=h.lugar;$("r_agr").value=h.agr;$("r_resp").value=h.resp;$("r_cc").value=h.cc;REP=h.canciones.map(s=>({...s}));rvista()};
+$("r_c").onclick=()=>$("dlgRep").close();
+function rdatos(){
+ const d={evento:$("r_evento").value.trim(),fecha:$("r_fecha").value,lugar:$("r_lugar").value.trim(),agr:$("r_agr").value.trim(),resp:$("r_resp").value.trim(),cc:$("r_cc").value.trim(),num:$("r_num").value.trim(),canciones:REP.map(s=>({...s}))};
+ if(!d.evento)return alert("Escribe el nombre del evento."),null;
+ if(!d.fecha)return alert("Elige la fecha."),null;
+ if(!d.resp)return alert("Escribe el nombre del responsable."),null;
+ if(!d.canciones.length)return alert("Agrega al menos una canción."),null;
+ return d}
+function rguardar(d){
+ rs(RP,{agr:d.agr,resp:d.resp,cc:d.cc});
+ const n=parseInt(d.num,10);if(n>=0&&n>rl(RC,0))rs(RC,n);
+ const H=rl(RK,[]).filter(h=>!(h.evento===d.evento&&h.fecha===d.fecha));H.unshift(d);rs(RK,H.slice(0,40));
+ $("r_num").value=String(rl(RC,0)+1).padStart(4,"0")}
+function rpdf(d){
+ if(!window.jspdf){alert("Necesito internet para cargar la herramienta de PDF. Conéctate y recarga la página.");return false}
+ const doc=new jspdf.jsPDF({unit:"mm",format:"letter"});let y=0;
+ const GOLD=[217,164,65],INK=[24,24,28],GR=[95,95,104],col=c=>doc.setTextColor(c[0],c[1],c[2]);
+ const bar=()=>{doc.setFillColor(...GOLD);doc.rect(0,0,216,4,"F")},chk=h=>{if(y+h>262){doc.addPage();bar();y=24}};
+ const w=(t,sz=10,b=0,c=INK,gap=2,mw=175)=>{doc.setFont("helvetica",b?"bold":"normal");doc.setFontSize(sz);col(c);doc.splitTextToSize(t,mw).forEach(l=>{chk(7);doc.text(l,20,y);y+=sz*.5+.6});y+=gap};
+ const h2=t=>{chk(22);y+=4;doc.setFillColor(...GOLD);doc.rect(20,y-4.2,1.6,6,"F");doc.setFont("helvetica","bold");doc.setFontSize(11);col(INK);doc.text(t,24,y);y+=7};
+ bar();y=27;
+ if(RLOGO){const bw=45,bh=18,r=Math.min(bw/RLOGO.w,bh/RLOGO.h),lw=RLOGO.w*r,lh=RLOGO.h*r;doc.addImage(RLOGO.d,"PNG",195-lw,10+(bh-lh)/2,lw,lh)}
+ w("CERTIFICADO DE REPERTORIO"+(d.num?" N.º "+d.num:""),16,1,INK,1,RLOGO?125:175);
+ doc.setDrawColor(...GOLD);doc.setLineWidth(.8);doc.line(20,y,60,y);y+=8;
+ doc.setDrawColor(215,215,220);doc.setLineWidth(.2);doc.roundedRect(20,y,175,34,2,2);doc.line(22,y+17,193,y+17);
+ [["Evento",d.evento,24,78,0],["Fecha",fdia(d.fecha),106,86,0],["Lugar",d.lugar||"—",24,78,17],["Artista o agrupación",d.agr||"—",106,86,17]].forEach(c=>{
+  doc.setFont("helvetica","normal");doc.setFontSize(7.5);col(GR);doc.text(c[0],c[2],y+c[4]+6);
+  doc.setFont("helvetica","bold");doc.setFontSize(9.5);col(INK);doc.text(doc.splitTextToSize(c[1],c[3])[0],c[2],y+c[4]+12.5)});
+ y+=34;
+ h2("Obras interpretadas ("+d.canciones.length+")");
+ const cols=[["N.º",12],["Nombre del tema",68],["Compositor(es)",63],["Carnet SAYCO",32]],fnt=hd=>{doc.setFont("helvetica",hd?"bold":"normal");doc.setFontSize(hd?8:9)};
+ const row=(vals,hd,i)=>{fnt(hd);const L=vals.map((v,j)=>doc.splitTextToSize(String(v),cols[j][1]-4)),h=Math.max(...L.map(a=>a.length))*4.2+4;
+  if(y+h>262){doc.addPage();bar();y=24;row(cols.map(c=>c[0]),1);fnt(hd)}
+  let x=20;col(INK);cols.forEach((c,j)=>{if(hd){doc.setFillColor(...GOLD);doc.rect(x,y,c[1],h,"F")}else if(i%2){doc.setFillColor(246,246,248);doc.rect(x,y,c[1],h,"F")}doc.text(L[j],x+2,y+5.2);x+=c[1]});y+=h};
+ row(cols.map(c=>c[0]),1);d.canciones.forEach((s,i)=>row([i+1,s.t,s.c||"—",s.n||"—"],0,i));
+ y+=8;
+ w("El responsable certifica que las obras relacionadas en este documento fueron interpretadas en el evento indicado. Los compositores corresponden a los datos registrados por el responsable.",8.5,0,GR,6);
+ chk(34);y+=10;doc.setDrawColor(...INK);doc.setLineWidth(.3);doc.line(20,y+10,95,y+10);
+ doc.setFont("helvetica","bold");doc.setFontSize(9);col(INK);doc.text(doc.splitTextToSize(d.resp,75)[0],20,y+15);
+ doc.setFont("helvetica","normal");doc.setFontSize(8);col(GR);doc.text("Responsable"+(d.cc?" · C.C./NIT "+d.cc:""),20,y+19.5);
+ const n=doc.getNumberOfPages();
+ for(let i=1;i<=n;i++){doc.setPage(i);doc.setDrawColor(215,215,220);doc.setLineWidth(.2);doc.line(20,268,195,268);doc.setFont("helvetica","normal");doc.setFontSize(8);col(GR);
+  doc.text(doc.splitTextToSize("Certificado de repertorio · "+d.evento,130)[0],20,273);doc.text("Página "+i+" de "+n,195,273,{align:"right"})}
+ return doc.output("arraybuffer")}
+function rxlsx(d){
+ if(!window.XLSX){alert("Necesito internet para cargar la herramienta de Excel. Conéctate y recarga la página.");return false}
+ const A=[["CERTIFICADO DE REPERTORIO"+(d.num?" N.º "+d.num:"")],[],["Evento",d.evento],["Fecha",fdia(d.fecha)],["Lugar",d.lugar],["Artista o agrupación",d.agr],["Responsable",d.resp+(d.cc?" · C.C./NIT "+d.cc:"")],[],["N.º","Nombre del tema","Compositor(es)","Carnet SAYCO"],...d.canciones.map((s,i)=>[i+1,s.t,s.c,s.n||""])];
+ const ws=XLSX.utils.aoa_to_sheet(A);ws["!cols"]=[{wch:22},{wch:44},{wch:44},{wch:16}];
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Repertorio");return XLSX.write(wb,{type:"array",bookType:"xlsx"})}
+function rset(d){
+ const doc=new jspdf.jsPDF({unit:"mm",format:"letter"}),GOLD=[217,164,65],INK=[24,24,28],GR=[95,95,104],col=c=>doc.setTextColor(c[0],c[1],c[2]);
+ doc.setFillColor(...GOLD);doc.rect(0,0,216,4,"F");let y=17;
+ doc.setFont("helvetica","bold");doc.setFontSize(20);col(INK);doc.text(doc.splitTextToSize(d.evento.toUpperCase(),176)[0],20,y);y+=7.5;
+ doc.setFont("helvetica","normal");doc.setFontSize(11);col(GR);doc.text(doc.splitTextToSize([fdia(d.fecha),d.lugar,d.agr].filter(Boolean).join("  ·  "),176)[0],20,y);y+=4;
+ doc.setDrawColor(...GOLD);doc.setLineWidth(.8);doc.line(20,y,60,y);y+=5;
+ const n=d.canciones.length,H=266-y,ex=s=>[s.tono,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
+ let fs=Math.max(10,Math.min(44,Math.floor(H/(n*.3528*1.45))));
+ const cab=()=>{doc.setFont("helvetica","bold");doc.setFontSize(fs);return d.canciones.every((s,i)=>doc.getTextWidth((i+1)+".  "+s.t.toUpperCase())<=(ex(s)?136:176))};
+ while(fs>10&&!cab())fs--;
+ const lh=fs*.3528*1.45;
+ d.canciones.forEach((s,i)=>{if(y+lh>272){doc.addPage();doc.setFillColor(...GOLD);doc.rect(0,0,216,4,"F");y=18}
+  y+=lh*.78;doc.setFont("helvetica","bold");doc.setFontSize(fs);col(INK);doc.text((i+1)+".  "+s.t.toUpperCase(),20,y);
+  if(ex(s)){doc.setFont("helvetica","normal");doc.setFontSize(12);col(GR);doc.text(ex(s),196,y,{align:"right"})}
+  y+=lh*.22;doc.setDrawColor(225,225,230);doc.setLineWidth(.15);if(i<n-1)doc.line(20,y,196,y)});
+ return doc.output("arraybuffer")}
+$("r_z").onclick=async()=>{const d=rdatos();if(!d)return;
+ if(!window.jspdf)return alert("Necesito internet para cargar la herramienta de PDF. Conéctate y recarga la página.");
+ if(!window.XLSX)return alert("Necesito internet para cargar la herramienta de Excel. Conéctate y recarga la página.");
+ const b=slug(d.evento)+"-"+d.fecha,f=[["repertorio-"+b+".pdf",rpdf(d)],["repertorio-"+b+".xlsx",rxlsx(d)],["setlist-"+b+".pdf",rset(d)]];
+ if(window.JSZip){const z=new JSZip();f.forEach(([nm,bf])=>z.file(nm,bf));bajar(await z.generateAsync({type:"blob"}),"repertorio-"+b+".zip")}
+ else{for(const[nm,bf]of f){bajar(new Blob([bf]),nm);await new Promise(r=>setTimeout(r,600))}aviso("No pude armar el ZIP; se bajaron los 3 archivos por separado.")}
+ rguardar(d)};
+</script></body></html>

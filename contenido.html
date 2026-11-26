@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi sistema de contenido</title>
+<style>
+:root{--bg:#F2F3EF;--surface:#FFFFFF;--ink:#18262E;--muted:#68777D;--line:#E0E4DF;--accent:#2D6A86;--accent-soft:#E3EEF3;--warm:#C8923A;--warm-soft:#F7EBD4;--on-accent:#FFFFFF;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0F191E;--surface:#16232A;--ink:#E8EDEA;--muted:#8FA0A6;--line:#25353D;--accent:#7BBAD6;--accent-soft:#1D3641;--warm:#E0AE5C;--warm-soft:#33291A;--on-accent:#0F191E}}
+
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:400;margin:0}
+header{max-width:1180px;margin:0 auto;padding:56px 24px 8px}
+header h1{font-size:clamp(36px,6vw,60px);line-height:1.05;letter-spacing:-.02em}
+header p{margin:14px 0 0;color:var(--muted);font-size:17px;max-width:46ch}
+.stats{display:flex;gap:28px;margin-top:22px;flex-wrap:wrap}
+.stats b{font:400 30px Fraunces,Georgia,serif;color:var(--accent);margin-right:8px}
+.stats span{color:var(--muted);font-size:14px}
+.bar{max-width:1180px;margin:0 auto;padding:16px 24px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .sp{flex:1}.bar small{color:var(--muted)}
+button{font:inherit;font-size:14px;font-weight:500;cursor:pointer;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 18px}
+button:hover{border-color:var(--accent)}
+button.f{padding:6px 16px;color:var(--muted)}
+button.on,button.on:hover{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button.main,button.main:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+button.x{color:var(--muted);padding:3px 12px;font-size:13px}
+button.x:hover{color:var(--warm);border-color:var(--warm)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+main{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
+#v-c{display:grid;grid-template-columns:minmax(300px,390px) 1fr;gap:24px}
+@media(max-width:820px){#v-c{grid-template-columns:1fr}}
+form,.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px}
+form{align-self:start}
+form h2{font-size:26px;margin-bottom:6px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.w{grid-column:1/3}
+label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;font-size:15px;color:inherit;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--bg)}
+.pl{display:flex;flex-wrap:wrap;gap:6px}
+.pl label{display:inline-flex;gap:6px;align-items:center;font-weight:500;color:var(--ink);margin:0;border:1px solid var(--line);border-radius:99px;padding:4px 14px;background:var(--bg)}
+.pl input{width:auto;accent-color:var(--accent)}
+.card{margin-bottom:14px;transition:border-color .2s}
+.card:hover{border-color:var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top h3{font-size:22px;display:flex;align-items:center;gap:10px}
+.top h3::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.top select{width:auto;font-weight:700;font-size:14px;border-radius:99px;border-color:var(--c);color:var(--c)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.chips span{font-size:12.5px;background:var(--bg);border-radius:99px;padding:2px 12px;color:var(--muted)}
+.l{margin:12px 0 2px;font-weight:700;font-size:13px;color:var(--accent)}
+.t{margin:0;white-space:pre-wrap}
+.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.tw{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;margin:12px 0}
+table{border-collapse:collapse;width:100%}
+th{background:var(--accent-soft);color:var(--ink);text-align:left;font-size:13px;font-weight:600;padding:10px 8px;white-space:nowrap}
+td{border-top:1px solid var(--line);padding:3px 4px;min-width:90px}
+td input,td select{border-color:transparent;background:transparent;padding:6px}
+td input:focus,td select:focus{background:var(--bg)}
+td:not(:has(input,select,button)){padding:6px 10px}
+.ex{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.ex label{display:flex;gap:8px;align-items:center;margin:0;color:var(--ink)}
+.ex input{width:auto}
+.vacio{text-align:center;color:var(--muted);padding:40px;border:1px dashed var(--line);border-radius:20px}
+#aviso{display:none;background:var(--warm-soft);color:var(--ink);border:1px solid var(--warm);padding:12px 16px;margin:12px 24px 0;border-radius:14px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:14px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.card,#toast{transition:none}}
+
+/* ===== Tema: mismo look de Splits y Contratos (solo aspecto, no toca el funcionamiento) ===== */
+:root{--bg:#0a0a0c;--surface:#141417;--ink:#f3efe6;--muted:#9b978d;--line:#2b2b31;--accent:#d9a441;--accent-soft:rgba(217,164,65,.13);--warm:#f0c36a;--warm-soft:rgba(240,195,106,.14);--on-accent:#14110a;color-scheme:dark}
+body,button,input,select,textarea,.cb h3{font-family:"Helvetica Neue",Arial,sans-serif}
+h1,h2,h3,.stats b,.cv,#player b{font-family:"Helvetica Neue",Arial,sans-serif}
+header h1{font-size:clamp(42px,8vw,84px);line-height:.95;letter-spacing:-.045em;font-weight:800}
+h2,h3{font-weight:700;letter-spacing:-.02em}
+.stats b{font-weight:800}
+button{border-radius:8px}
+button.main,button.on{font-weight:700}
+input,select,textarea{border-radius:8px;background:#0e0e11}
+.bar input,.bar select{border-radius:8px;background:#0e0e11}
+.o,form,.card,.tw,.vacio,.msg,dialog{border-radius:14px}
+.top select{border-radius:8px}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+
+/* ===== Versión compacta: lista plegable, ayudas "?", menú de datos y herramientas nuevas ===== */
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px 36px;flex-wrap:wrap;padding:30px 24px 4px}
+header h1{font-size:clamp(30px,4.6vw,46px);line-height:1;letter-spacing:-.04em}
+header p{margin:8px 0 0;font-size:15px}
+.stats{margin-top:0;gap:8px 26px}.stats b{font-size:24px;margin-right:6px}.stats span{font-size:13px}
+.bar{padding-top:12px}
+main{padding-top:14px}
+form,.card{padding:18px}
+.menu{position:relative;display:inline-flex;align-items:center}
+.dd{position:absolute;left:0;top:calc(100% + 6px);min-width:260px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;z-index:40;box-shadow:0 12px 32px rgba(0,0,0,.55)}
+.dd[hidden]{display:none}
+.dd button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;font-size:14px}
+.dd button:hover,.dd button:focus-visible{background:var(--accent-soft)}
+.dd hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+.dd small{display:block;padding:4px 10px;color:var(--muted)}
+.tip{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:.72rem;font-weight:700;line-height:1;cursor:help;position:relative;vertical-align:middle;margin-left:6px;flex:none}
+.tip:hover,.tip:focus-visible,.tip.open{color:var(--ink);border-color:var(--accent)}
+.tip::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(300px,78vw);background:#1d1d22;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.82rem;font-weight:400;line-height:1.4;text-align:left;white-space:normal;text-transform:none;letter-spacing:0;opacity:0;pointer-events:none;transition:opacity .15s;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tip.tl::after{left:0;transform:none}.tip.tr::after{left:auto;right:0;transform:none}
+.tip:hover::after,.tip:focus-visible::after,.tip.open::after{opacity:1}
+label .tip{margin-left:6px}
+.lc{margin-bottom:12px}
+.lrow{display:grid;grid-template-columns:1.6fr 1fr 1fr auto;gap:8px}
+@media(max-width:1000px){.lrow{grid-template-columns:1fr 1fr}}
+#cnt{color:var(--muted);font-size:13px}
+.ci{padding:0;overflow:hidden;margin-bottom:8px}
+.hd{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;border-radius:0;padding:14px 18px;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.hd:hover{background:var(--accent-soft)}
+.hd .dt{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.hd .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd .ch{color:var(--muted);transition:transform .2s;flex:none}
+.ci.open .ch{transform:rotate(180deg)}
+.ci.open{border-color:var(--accent)}
+.bd{padding:2px 18px 18px;border-top:1px solid var(--line)}
+.bd .top{margin-top:12px;flex-wrap:wrap}.bd .chips{margin:0}
+.sc .l{margin-top:14px}
+.acts button.main{padding:9px 18px}
+.gtl{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}.gtl select{width:auto;font-size:13px;padding:5px 9px}.gtl small{color:var(--muted)}
+.iarow{display:flex;align-items:center;margin-top:14px}
+button.ia{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+button.ia:disabled{opacity:.6;cursor:wait}
+.pb{display:inline-block;width:110px;height:8px;border-radius:5px;background:var(--line);vertical-align:middle;margin-right:8px;overflow:hidden}.pb i{display:block;height:100%;background:var(--accent)}
+.xh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;margin-bottom:2px}
+.xh h2{font-size:22px}
+dialog{background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:22px;width:min(540px,94vw)}
+.dfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.hd .ch,.tip::after{transition:none}}
+</style></head><body>
+<header><div><h1>Mi sistema de contenido</h1><p>Reels, productos, ventas y metas en un solo lugar.</p></div><div class="stats" id="stats"></div></header>
+<div id="aviso">Este navegador no deja guardar datos aquí. Usa «Exportar a Excel» después de cada cambio.</div>
+<div class="bar" id="tb">
+  <div class="menu"><button class="main" id="mData" aria-haspopup="true" aria-expanded="false" aria-controls="dd">Datos y Excel ▾</button><button type="button" class="tip tl" data-tip="Exportar guarda todo en un archivo Excel; si usas Chrome o Edge se sobrescribe siempre el mismo archivo. Importar reemplaza lo que ves con lo que hay en ese Excel. Tus datos también se guardan en este navegador." aria-label="Ayuda sobre datos y Excel">?</button>
+    <div class="dd" id="dd" hidden>
+      <button id="exp" type="button">Exportar a Excel</button>
+      <button id="imp" type="button">Importar desde Excel</button>
+      <button id="cam" type="button">Cambiar archivo vinculado</button>
+      <hr>
+      <button id="blank" type="button">Empezar en blanco</button>
+      <button id="demo" type="button">Cargar datos de ejemplo</button>
+      <hr>
+      <small id="arch">Sin archivo vinculado</small><small id="exi"></small>
+    </div></div>
+  <button id="aiBtn" type="button">Ajustes de IA</button>
+  <input type="file" id="file" accept=".xlsx" hidden>
+</div>
+<div class="bar" id="tabs"></div>
+<main>
+<section id="v-c"><form id="form" autocomplete="off"><h2 id="ft">Nueva idea o guion</h2><input type="hidden" id="idx"><div class="g" id="fields"></div>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="main" style="flex:1" id="gb">Guardar</button><button type="button" id="cl">Limpiar</button></div></form>
+<div><div class="lc">
+  <div class="lrow"><input id="sq" type="search" placeholder="Buscar en títulos, guiones y notas" aria-label="Buscar"><select id="sf" aria-label="Formato"><option value="">Todos los formatos</option><option>Reel</option><option>Video largo</option><option>Videoclip</option></select><select id="so" aria-label="Ordenar"><option value="fecha">Por fecha prevista</option><option value="estado">Por avance</option><option value="az">A–Z</option><option value="nuevo">Más recientes</option></select><button type="button" id="ea" class="f">Expandir todo</button></div>
+  <div class="bar" style="padding:10px 0 0" id="filt"></div>
+  <div style="display:flex;align-items:center;margin-top:8px"><small id="cnt"></small><button type="button" class="tip tl" data-tip="El punto de color de cada idea indica su estado: Idea, Guion listo, Grabado, Editado o Publicado. Toca una idea para ver su guion, editarla o pasarla al siguiente estado." aria-label="Ayuda sobre la lista">?</button></div>
+</div><div id="lista"></div></div></section>
+<section id="v-g"><div class="ex" id="extra"></div><div id="grid"></div></section>
+</main><datalist id="prods"></datalist>
+<dialog id="dlgIA" aria-labelledby="iaT"><h2 id="iaT">Ajustes de IA</h2>
+  <p style="color:var(--muted);margin:6px 0 0;font-size:14px">La IA propone gancho, guion, cierre y hashtags para tus ideas. Usa tu propia clave de la API; se guarda solo en este navegador.</p>
+  <label for="iaKey">Clave de la API</label><input id="iaKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+  <label for="iaMod">Modelo</label><select id="iaMod"><option value="claude-haiku-5-5">Haiku 5.5 (rápido y barato)</option><option value="claude-sonnet-5-5">Sonnet 5.5 (más creativo)</option></select>
+  <label for="iaPer">Cuéntale a la IA quién eres <button type="button" class="tip tl" data-tip="Una o dos frases sobre ti, tu música y tu público. La IA las usa para que los guiones suenen a ti." aria-label="Ayuda">?</button></label><textarea id="iaPer" rows="4"></textarea>
+  <div class="dfoot"><button type="button" id="iaNo">Cancelar</button><button type="button" class="main" id="iaOk">Guardar</button></div>
+</dialog>
+<script src="config-ia.js"></script><div id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const K="sistema-fabi-v1",OLD="estudio-reels-v1",ES=["Idea","Guion listo","Grabado","Editado","Publicado"];
+const COL={"Idea":"#9b978d","Guion listo":"#f0c36a","Grabado":"#4cc9b0","Editado":"#8c9eff","Publicado":"#f06292"};
+const S={
+contenido:{n:"Contenido",c:[["fecha","Fecha","date"],["formato","Formato"],["tipo","Tipo"],["instrumento","Instrumento"],["plataformas","Plataformas","arr"],["titulo","Título"],["producto","Producto que promociona"],["estado","Estado"],["link","Link publicado"],["vistas","Vistas","num"],["clics","Clics o mensajes","num"],["gancho","Gancho"],["guion","Guion"],["cta","Cierre"],["hashtags","Hashtags"],["notas","Notas"]]},
+productos:{n:"Productos",c:[["producto","Producto"],["plataforma","Plataforma"],["precio","Precio (USD)","num"],["estado","Estado","sel","Idea,En creación,Activo,Pausado"],["fecha","Fecha meta","date"],["notas","Notas"]]},
+lanzamiento:{n:"Lanzamiento",c:[["etapa","Etapa"],["tarea","Tarea"],["dia","Día desde el inicio","num"],["fecha","Fecha límite","calc"],["hecho","¿Hecho?","sel","No,Sí"]]},
+ventas:{n:"Ventas",c:[["fecha","Fecha","date"],["producto","Producto"],["cantidad","Cantidad","num"],["precio","Precio unitario (USD)","num"],["total","Total (USD)","calc"],["origen","Origen","sel","Facebook,TikTok,YouTube,Instagram,Lista de contactos,Otro"]]},
+semana:{n:"Semana",fixed:1,c:[["lunes","Lunes de la semana","calc"],["plan","Reels planeados","calc"],["pub","Reels publicados","calc"],["largos","Videos largos publicados","calc"],["contactos","Nuevos contactos","num"],["mejor","Vistas del mejor reel","num"],["usd","Ventas (USD)","calc"],["bien","¿Qué funcionó?"],["mal","¿Qué mejorar?"]]},
+objetivos:{n:"Objetivos",fixed:1,c:[["obj","Objetivo","calc"],["meta","Meta del mes","num"],["llevas","Lo que llevas","calc"],["avance","Avance","calc"]]}};
+const TABS=[["objetivos","Objetivos"],["contenido","Contenido"],["productos","Productos"],["lanzamiento","Lanzamiento"],["ventas","Ventas"],["semana","Semana"]];
+const CFGL={mes:"Mes que mides (AAAA-MM)",semana:"Primer lunes de la hoja Semana",inicio:"Inicio del lanzamiento"};
+const OBJN=["Reels publicados","Videos largos en YouTube","Nuevos contactos en tu lista","Ventas (unidades)","Ingresos (USD)"];
+const F=[["titulo","Título de la idea","t",0,1,"El nombre corto con el que reconoces esta idea en tu lista."],["formato","Formato","s","Reel,Video largo,Videoclip",0,"Reel: video vertical corto. Video largo: para YouTube. Videoclip: tus canciones."],["tipo","Tipo","s","Enseñanza,Tocando,Venta,Tutorial,Otro",0,"Para qué sirve el video: enseñar, mostrar que tocas, vender o explicar paso a paso."],["instrumento","Instrumento","s","Quena,Zampoña,Ambos,Otro"],["estado","Estado","s",ES.join(),0,"El avance de la idea: Idea, Guion listo, Grabado, Editado y Publicado. Se cuenta en Objetivos."],["fecha","Fecha prevista","d",0,0,"El día que planeas publicarlo. Alimenta la hoja Semana y el orden de la lista."],["producto","Producto que promociona","t",0,0,"Si el video vende algo, elige un producto de la hoja Productos."],["plataformas","Dónde lo publicas","p",0,1],["gancho","Gancho (primeros 3 segundos)","a2",0,1,"La frase o imagen con la que empieza el video. Si no atrapa en 3 segundos, se pierde la audiencia."],["guion","Guion, paso a paso","a6",0,1,"Lo que dices y lo que muestras, con tiempos. Un reel suele durar entre 30 y 45 segundos."],["cta","Cierre y llamado a la acción","t",0,1,"Lo último que dices: qué quieres que haga quien te ve (seguirte, escribirte, comprar)."],["hashtags","Hashtags","t",0,1],["notas","Notas para grabar","a2",0,1,"Recordatorios para ti: luz, lugar, ropa, qué mostrar."],["link","Link publicado","t",0,1,"El enlace del video ya publicado."],["vistas","Vistas","n"],["clics","Clics o mensajes","n",0,0,"Cuántas personas te escribieron o hicieron clic gracias a este video."]];
+const ADD={productos:{producto:"",plataforma:"",precio:"",estado:"Idea",fecha:"",notas:""},lanzamiento:{etapa:"",tarea:"",dia:0,hecho:"No"},ventas:{fecha:"",producto:"",cantidad:1,precio:"",origen:"Facebook"}};
+const $=id=>document.getElementById(id),esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const add=(d,n)=>{const x=new Date(d+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0),mes=d=>(d||"").slice(0,7)==D.cfg.mes,fmt=d=>d?d.split("-").reverse().join("/"):"";
+let D,tab="contenido",filtro="Todos";
+const tip=(t,c)=>`<button type="button" class="tip ${c||"tl"}" data-tip="${esc(t)}" aria-label="Ayuda: ${esc(t)}">?</button>`;
+const ensureIds=()=>D.contenido.forEach(x=>{if(!x.id)x.id=uid()});
+const RP=["TikTok","Facebook","Shorts"];
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const mk=o=>({id:uid(),fecha:"",formato:"Reel",tipo:"Enseñanza",instrumento:"Quena",plataformas:RP,titulo:"",producto:"",estado:"Idea",link:"",vistas:"",clics:"",gancho:"",guion:"",cta:"",hashtags:"",notas:"",...o});
+function seed(){
+ const c=[mk({fecha:"2026-11-16",titulo:"3 errores al soplar la quena (y cómo arreglarlos)",estado:"Guion listo",gancho:"«Si tu quena suena a aire y no a nota, estás cometiendo uno de estos 3 errores.»",guion:"0–3 s: gancho a cámara.\n3–10 s, error 1: soplas demasiado fuerte. Muestra fuerte y feo, luego suave y limpio. Texto: «Menos fuerza, aire constante».\n10–20 s, error 2: el ángulo. Apoya el labio en la muesca e inclina poco a poco. Texto: «Muévela despacio».\n20–30 s, error 3: tapas mal los agujeros. Texto: «Cubre con la yema, no con la punta».\n30–35 s: toca una frase corta y limpia.",cta:"Sígueme para la parte 2 y escribe «QUENA» si quieres una partitura fácil.",hashtags:"#quena #musicaandina #aprendermusica",notas:"Luz natural, cámara a la altura de la boca."}),
+ mk({fecha:"2026-11-18",titulo:"Melodía lenta al aire libre (quena)",tipo:"Tocando",estado:"Guion listo",gancho:"Sin hablar. Primer plano de manos y quena, texto: «Así suena la quena al aire libre».",guion:"0–5 s: primer plano, empiezas a tocar.\n5–25 s: una frase completa de una canción tuya.\n25–30 s: plano general del paisaje.",cta:"«¿Quieres aprender esta melodía? Dímelo en los comentarios.»",hashtags:"#quena #musicaoriginal #folclore",notas:"Es el reel que te presenta como artista: no vendas aquí. Usa solo música tuya."}),
+ mk({fecha:"2026-11-20",titulo:"«La quena es muy difícil»: eso me dijeron",tipo:"Venta",producto:"Curso de quena",estado:"Guion listo",gancho:"«Te dijeron que la quena es imposible de aprender. No es cierto.»",guion:"0–8 s: a cámara, cualquiera puede sacar su primera canción paso a paso.\n8–20 s: antes y después (tú o un alumno con permiso).\n20–28 s: qué incluye el curso, en una frase.\n28–32 s: llamado a la acción.",cta:"«El curso está en el link de mi perfil.»",hashtags:"#quena #cursodequena #aprenderquena",notas:"Usa un testimonio real si lo tienes. Pon el precio nuevo cuando lo decidas."}),
+ mk({titulo:"Tu primera nota en la zampoña en 30 segundos",instrumento:"Zampoña",guion:"Idea: cómo posicionar los labios y soplar sobre el borde del tubo. Falta el paso a paso."})];
+ for(let w=1;w<4;w++)[[0,"Reel","Enseñanza","Reel de enseñanza"],[2,"Reel","Tocando","Reel tocando"],[4,"Reel","Venta","Reel de venta"],[5,"Video largo","Tutorial","Tutorial largo"]].forEach(([d,f,t,n])=>c.push(mk({fecha:add("2026-11-16",7*w+d),formato:f,tipo:t,titulo:n+" (por escribir)",plataformas:f=="Reel"?RP:["YouTube"]})));
+ const P=[["Curso de quena","Hotmart",8,"Activo","2026-11-30","Relanzar: módulo nuevo, portada y texto nuevos"],["PDF de partituras (entrada)","Hotmart","","Idea","2026-12-07","También sirve de regalo para captar contactos"],["Curso de zampoña","Hotmart","","Idea","2027-01-31","Público: alumnos de quena"],["Clases en vivo","Videollamada","","Idea","2026-12-15","Producto premium"],["Taller o concierto en línea","Boletería propia","","Idea","2027-02-28","Vender entradas con tu negocio de ticketing"]];
+ const L=[["Preparación","Decidir el precio nuevo o un paquete (hoy 8 USD)",0],["Preparación","Crear el enlace único (Linktree) con curso y boletería",1],["Preparación","Pedir 5 testimonios a quienes ya compraron",2],["Preparación","Grabar un módulo o bono nuevo",4],["Preparación","Nueva portada y texto de venta en Hotmart",5],["Preparación","Crear el PDF gratis para captar contactos",6],["Calentamiento","Invitar al PDF gratis al final de cada reel",7],["Calentamiento","Publicar 3 reels que enseñan mucho",8],["Calentamiento","Encuesta en Facebook: ¿qué canción quieren aprender?",10],["Calentamiento","Subir un tutorial largo a YouTube",12],["Apertura","Anunciar el curso renovado con fecha límite",14],["Apertura","Mensaje a tu lista de contactos",15],["Apertura","Publicar los testimonios",16],["Apertura","En vivo de preguntas y respuestas",18],["Cierre","Recordatorio diario en reels e historias",21],["Cierre","Aviso de último día",27],["Cierre","Cerrar la oferta en la fecha prometida",27],["Cierre","Revisar resultados y anotar lo aprendido",28]];
+ return{cfg:{mes:"2026-11",semana:"2026-11-16",inicio:"2026-11-16"},contenido:c,
+  productos:P.map(p=>Object.fromEntries(S.productos.c.map((k,i)=>[k[0],p[i]]))),lanzamiento:L.map(l=>({etapa:l[0],tarea:l[1],dia:l[2],hecho:"No"})),ventas:[],
+  semana:Array.from({length:12},()=>({contactos:"",mejor:"",bien:"",mal:""})),objetivos:[12,4,100,20,160].map(m=>({meta:m}))}}
+function load(){try{D=JSON.parse(localStorage.getItem(K))}catch(e){}
+ if(!D){D=seed();try{const o=JSON.parse(localStorage.getItem(OLD));if(Array.isArray(o)&&o.length)D.contenido=o.map(mk)}catch(e){}save()}}
+function save(){try{localStorage.setItem(K,JSON.stringify(D))}catch(e){$("aviso").style.display="block"}}
+function aviso(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2200)}
+function llevas(i){const c=D.contenido,v=D.ventas.filter(x=>mes(x.fecha));
+ return[c.filter(x=>x.formato=="Reel"&&x.estado=="Publicado"&&mes(x.fecha)).length,c.filter(x=>x.formato=="Video largo"&&x.estado=="Publicado"&&mes(x.fecha)).length,sum(D.semana.filter((_,j)=>mes(add(D.cfg.semana,7*j))),x=>x.contactos),sum(v,x=>x.cantidad),sum(v,x=>x.cantidad*x.precio)][i]}
+function semc(i){const m=add(D.cfg.semana,7*i),e=add(m,7),w=x=>x.fecha>=m&&x.fecha<e,c=D.contenido,r=c.filter(x=>x.formato=="Reel"&&w(x));
+ return{lunes:fmt(m),plan:r.length,pub:r.filter(x=>x.estado=="Publicado").length,largos:c.filter(x=>x.formato=="Video largo"&&x.estado=="Publicado"&&w(x)).length,usd:sum(D.ventas.filter(w),x=>x.cantidad*x.precio)}}
+function calc(s,r,i,k){
+ if(s=="lanzamiento")return fmt(add(D.cfg.inicio,+r.dia||0));
+ if(s=="ventas")return(+r.cantidad||0)*(+r.precio||0);
+ if(s=="semana")return semc(i)[k];
+ if(s=="objetivos"){if(k=="obj")return OBJN[i];const l=llevas(i);return k=="llevas"?l:(r.meta?Math.round(100*l/r.meta)+"%":"")}}
+function calcHTML(s,r,i,k){const v=calc(s,r,i,k);
+ if(s=="objetivos"&&k=="avance"){const p=Math.min(100,parseInt(v)||0);return`<span class="pb"><i style="width:${p}%"></i></span>${esc(v)}`}return esc(v)}
+function refreshCalc(){
+ document.querySelectorAll("[data-c]").forEach(td=>{const[s,i,k]=td.dataset.c.split("|");td.innerHTML=calcHTML(s,D[s][+i],+i,k)});
+ if(tab!="contenido"){const ex=$("extra").querySelectorAll("b:not([data-keep])");if(ex.length){const f=extra(tab),d=document.createElement("div");d.innerHTML=f;const nb=d.querySelectorAll("b");ex.forEach((b,j)=>{if(nb[j])b.textContent=nb[j].textContent})}}
+ stats()}
+function cell(s,r,i,c){const[k,,t,o]=c,v=r[k];
+ if(t=="calc")return`<td data-c="${s}|${i}|${k}">${calcHTML(s,r,i,k)}</td>`;
+ const a=`data-s="${s}" data-i="${i}" data-k="${k}"`;
+ if(t=="sel")return`<td><select ${a}>${o.split(",").map(x=>`<option${x==v?" selected":""}>${x}</option>`).join("")}</select></td>`;
+ return`<td><input ${a} type="${t=="num"?"number":t=="date"?"date":"text"}"${t=="num"?' step="any"':""}${k=="producto"?' list="prods"':""} value="${esc(v)}"></td>`}
+function grid(s){const sc=S[s];
+ return`<div class="tw"><table><thead><tr>${sc.c.map(c=>`<th>${c[1]}</th>`).join("")}${sc.fixed?"":"<th></th>"}</tr></thead><tbody>${D[s].map((r,i)=>`<tr>${sc.c.map(c=>cell(s,r,i,c)).join("")}${sc.fixed?"":`<td><button class="x" data-del="${s}" data-i="${i}">Quitar</button></td>`}</tr>`).join("")}</tbody></table></div>${sc.fixed?"":`<button class="main" data-add="${s}">Agregar fila</button>`}`}
+function extra(s){
+ const H={objetivos:["Objetivos","Tus metas del mes frente a lo que llevas. Se calcula solo con tus contenidos publicados, tus ventas y los contactos de la hoja Semana. Las metas de ejemplo se cambian por las tuyas."],
+  productos:["Productos","Lo que vendes o planeas vender, con su plataforma, precio y fecha meta. Estos nombres aparecen para elegir en tus ideas y ventas."],
+  lanzamiento:["Lanzamiento","Plan paso a paso de un lanzamiento. Cada tarea tiene un día contado desde la fecha de inicio y su fecha límite se calcula sola."],
+  ventas:["Ventas","Anota cada venta. El total se calcula solo y alimenta tus objetivos y los ingresos del mes."],
+  semana:["Semana","Resumen semanal. Reels planeados, publicados y ventas se calculan solos desde Contenido y Ventas; tú anotas contactos nuevos, el mejor reel y qué aprendiste."]}[s];
+ const h=`<div class="xh"><h2>${H[0]}</h2>${tip(H[1])}</div>`;
+ if(s=="objetivos")return h+`<label>Mes que estás midiendo ${tip("Elige el mes que quieres medir. Lo que llevas se calcula solo con ese mes.")}<input type="month" data-cfg="mes" value="${D.cfg.mes}"></label>`;
+ if(s=="semana")return h+`<label>Primer lunes ${tip("El lunes con el que empieza la primera fila. Cada fila siguiente es una semana más.")}<input type="date" data-cfg="semana" value="${D.cfg.semana}"></label>`;
+ if(s=="lanzamiento"){const x=D.lanzamiento.filter(q=>q.hecho=="Sí").length;return h+`<label>Fecha de inicio ${tip("El día 0 del lanzamiento. Las fechas límite de las tareas se cuentan desde aquí.")}<input type="date" data-cfg="inicio" value="${D.cfg.inicio}"></label><b>Avance: ${D.lanzamiento.length?Math.round(100*x/D.lanzamiento.length):0}%</b>`}
+ if(s=="ventas")return h+`<b>Total vendido: $${sum(D.ventas,x=>x.cantidad*x.precio).toFixed(2)}</b>`;
+ return h}
+let open=new Set(),bq="",ord="fecha",ff="";
+function card([x,i]){
+ const o=open.has(x.id),p=(n,v)=>v?`<div class="sc"><p class="l">${n}</p><p class="t">${esc(v)}</p></div>`:"",nx=ES[ES.indexOf(x.estado)+1];
+ let h=`<article class="card ci${o?" open":""}" style="--c:${COL[x.estado]}"><button type="button" class="hd" data-id="${x.id}" aria-expanded="${o}" title="${esc(x.estado)}"><span class="dt"></span><span class="tt">${esc(x.titulo)}</span><span class="ch" aria-hidden="true">▾</span></button>`;
+ if(o)h+=`<div class="bd"><div class="top"><div class="chips"><span>${esc(x.formato)}</span><span>${esc(x.tipo)}</span><span>${esc(x.instrumento)}</span>${x.fecha?`<span>Fecha: ${fmt(x.fecha)}</span>`:""}${(x.plataformas||[]).map(q=>`<span>${esc(q)}</span>`).join("")}${x.producto?`<span>Promociona: ${esc(x.producto)}</span>`:""}${x.vistas!==""?`<span>Vistas: ${esc(x.vistas)}</span>`:""}${x.clics!==""?`<span>Clics: ${esc(x.clics)}</span>`:""}</div><select data-s="contenido" data-i="${i}" data-k="estado" aria-label="Estado">${ES.map(e=>`<option${e==x.estado?" selected":""}>${e}</option>`).join("")}</select></div>
+ ${p("Gancho",x.gancho)}${p("Guion",x.guion)}${p("Cierre",x.cta)}${p("Hashtags",x.hashtags)}${p("Notas para grabar",x.notas)}${p("Link",x.link)}
+ <div class="acts"><button data-a="ed" data-i="${i}">Editar</button><button data-a="cp" data-i="${i}">Copiar guion</button><button data-a="dup" data-i="${i}">Duplicar</button>${nx?`<button class="main" data-a="adv" data-i="${i}">Pasar a «${nx}»</button>`:""}<button class="x" data-a="del" data-i="${i}">Eliminar</button></div></div>`;
+ return h+"</article>"}
+function lista(){
+ const base=D.contenido.map((x,i)=>[x,i]).filter(([x])=>(!ff||x.formato==ff)&&(!bq||[x.titulo,x.gancho,x.guion,x.cta,x.hashtags,x.notas,x.producto].join(" ").toLowerCase().includes(bq)));
+ $("filt").innerHTML=[["Todos",base.length],...ES.map(e=>[e,base.filter(([x])=>x.estado==e).length])].map(([e,n])=>`<button type="button" class="f${e==filtro?" on":""}" data-f="${e}">${e} · ${n}</button>`).join("");
+ const L=base.filter(([x])=>filtro=="Todos"||x.estado==filtro),fd=x=>x.fecha||"9999";
+ L.sort({fecha:(a,b)=>fd(a[0]).localeCompare(fd(b[0])),estado:(a,b)=>ES.indexOf(a[0].estado)-ES.indexOf(b[0].estado)||fd(a[0]).localeCompare(fd(b[0])),az:(a,b)=>a[0].titulo.localeCompare(b[0].titulo,"es"),nuevo:(a,b)=>a[1]-b[1]}[ord]);
+ $("cnt").textContent=D.contenido.length?`Mostrando ${L.length} de ${D.contenido.length}`:"";
+ $("ea").textContent=L.length&&L.every(([x])=>open.has(x.id))?"Contraer todo":"Expandir todo";
+ $("lista").innerHTML=L.length?L.map(card).join(""):`<div class="vacio">${D.contenido.length?"Nada coincide con tu búsqueda o tus filtros.":"Aquí no hay nada todavía. Llena el formulario y tu idea aparecerá en esta lista."}</div>`}
+function dup(i){const x=D.contenido[i],c=JSON.parse(JSON.stringify(x));c.id=uid();c.titulo=x.titulo+" (copia)";c.estado="Idea";c.link="";c.vistas="";c.clics="";D.contenido.splice(i+1,0,c);open.add(c.id);save();view();aviso("Duplicado: la copia está abierta")}
+function adv(i){const x=D.contenido[i],n=ES[ES.indexOf(x.estado)+1];if(n){x.estado=n;save();view();aviso("Pasó a «"+n+"»")}}
+function stats(){
+ $("stats").innerHTML=[[D.contenido.length,"contenidos"],[D.contenido.filter(x=>x.estado=="Guion listo").length,"listos para grabar"],[D.contenido.filter(x=>x.estado=="Publicado").length,"publicados"],["$"+llevas(4).toFixed(2),"ingresos del mes"]].map(([n,t])=>`<div><b>${n}</b><span>${t}</span></div>`).join("")}
+function view(){
+ stats();
+ $("tabs").innerHTML=TABS.map(([k,n])=>`<button class="f${k==tab?" on":""}" data-t="${k}">${n}</button>`).join("");
+ $("prods").innerHTML=D.productos.map(p=>`<option value="${esc(p.producto)}">`).join("");
+ $("v-c").style.display=tab=="contenido"?"grid":"none";$("v-g").style.display=tab=="contenido"?"none":"block";
+ if(tab=="contenido")lista();else{$("extra").innerHTML=extra(tab);$("grid").innerHTML=grid(tab)}}
+const TPL={ensenanza:"0–3 s: gancho a cámara.\n3–10 s, paso 1: \n10–20 s, paso 2: \n20–30 s, paso 3: \n30–35 s: cierre tocando una frase corta.",tocando:"0–5 s: primer plano de manos e instrumento; empiezas a tocar.\n5–25 s: una frase completa de tu música.\n25–30 s: plano general del lugar.",venta:"0–5 s: gancho con el problema de tu público.\n5–15 s: la solución (tu producto) en una frase.\n15–25 s: prueba: testimonio o antes y después.\n25–32 s: oferta y llamado a la acción claro.",largo:"0–15 s: gancho y promesa del video.\n15 s–2 min: introducción y contexto.\nPartes principales: \nÚltimos 30 s: resumen y llamado a la acción."};
+$("fields").innerHTML=F.map(([k,n,t,o,w,h])=>{const a=`id="f_${k}"`;let x=t=="s"?`<select ${a}>${o.split(",").map(q=>`<option>${q}</option>`).join("")}</select>`:t=="p"?`<div class="pl" ${a}>${RP.concat("Instagram","YouTube").map(q=>`<label><input type="checkbox" value="${q}">${q}</label>`).join("")}</div>`:t[0]=="a"?`<textarea ${a} rows="${t.slice(1)}"></textarea>`:`<input ${a} type="${t=="d"?"date":t=="n"?"number":"text"}"${k=="producto"?' list="prods"':""}>`;
+ if(k=="guion")x+=`<div class="gtl"><select id="tpl" aria-label="Estructura sugerida"><option value="">Estructura sugerida…</option><option value="ensenanza">Enseñanza en 3 pasos</option><option value="tocando">Tocando, sin hablar</option><option value="venta">Venta: problema, solución, oferta</option><option value="largo">Video largo</option></select><small id="gc"></small></div>`;
+ return(k=="gancho"?`<div class="w iarow"><button type="button" id="ia" class="ia">✦ Generar con IA</button>${tip("Escribe el título y elige formato, tipo e instrumento: la IA propone gancho, guion, cierre y hashtags que luego puedes editar. Necesita tu clave en «Ajustes de IA».")}</div>`:"")+`<div class="${w?"w":""}"><label>${n}${h?tip(h):""}</label>${x}</div>`}).join("");
+const wc=()=>{const n=($("f_guion").value.trim().match(/\S+/g)||[]).length;$("gc").textContent=n?n+" palabras":""};
+$("f_guion").addEventListener("input",wc);
+$("tpl").addEventListener("change",e=>{const v=e.target.value;if(!v)return;const g=$("f_guion");if(g.value.trim()&&!confirm("Esto reemplaza el guion que ya escribiste. ¿Continuar?")){e.target.value="";return}g.value=TPL[v];e.target.value="";wc()});
+const IAK="sistema-fabi-ia",IAD={key:"",model:"claude-haiku-5-5",perfil:"Soy artista y músico. Hago reels y videos tocando y enseñando mi instrumento, y vendo cursos y otros productos digitales."};
+const iaCfg=()=>{try{return Object.assign({},IAD,JSON.parse(localStorage.getItem(IAK)||"{}"))}catch(e){return{...IAD}}};
+function abrirIA(){const c=iaCfg();$("iaKey").value=c.key;$("iaMod").value=c.model;$("iaPer").value=c.perfil;$("dlgIA").showModal()}
+$("aiBtn").onclick=abrirIA;$("iaNo").onclick=()=>$("dlgIA").close();
+$("iaOk").onclick=()=>{try{localStorage.setItem(IAK,JSON.stringify({key:$("iaKey").value.trim(),model:$("iaMod").value,perfil:$("iaPer").value.trim()||IAD.perfil}))}catch(e){}$("dlgIA").close();aviso("Ajustes de IA guardados")};
+const SYS="Eres guionista de contenido corto (reels, TikTok, Shorts) y de videos largos para un artista y emprendedor. Escribe en español natural, cercano y directo, sin frases de relleno. Devuelve SOLO un objeto JSON, sin texto antes ni después, con estas claves: gancho (la frase o imagen de los primeros 3 segundos), guion (paso a paso con tiempos como 0–3 s, 3–10 s…, diciendo qué se dice y qué se muestra; ajustado a la duración típica del formato: un reel de 30 a 45 segundos), cta (cierre y llamado a la acción; si el tipo es Tocando, no vendas), hashtags (de 4 a 6, en una sola línea). Respeta las notas del artista si las hay.";
+async function genIA(){
+ const c=iaCfg(),key=(window.IA_CLAVE&&!/^PEGA/.test(window.IA_CLAVE))?window.IA_CLAVE:c.key,g=id=>$("f_"+id).value.trim();
+ if(!key){abrirIA();return aviso("Falta tu clave de la API")}
+ if(!g("titulo")){$("f_titulo").focus();return aviso("Escribe primero el título de la idea")}
+ if((g("guion")||g("gancho")||g("cta")||g("hashtags"))&&!confirm("Esto reemplaza el gancho, guion, cierre y hashtags que ya escribiste. ¿Continuar?"))return;
+ const pl=[...$("f_plataformas").querySelectorAll("input:checked")].map(q=>q.value).join(", "),
+  msg=["Perfil del artista: "+c.perfil,"Título de la idea: "+g("titulo"),"Formato: "+g("formato"),"Tipo: "+g("tipo"),"Instrumento: "+g("instrumento"),"Dónde se publica: "+(pl||"sin definir"),g("producto")?"Producto que promociona: "+g("producto"):"No promociona ningún producto.",g("notas")?"Notas del artista: "+g("notas"):""].filter(Boolean).join("\n"),b=$("ia");
+ b.disabled=true;const old=b.textContent;b.textContent="Escribiendo…";
+ try{const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:c.model,max_tokens:1200,system:SYS,messages:[{role:"user",content:msg}]})}),j=await r.json();
+  if(!r.ok)throw new Error(r.status==401?"La clave no es válida. Revísala en Ajustes de IA.":(j.error&&j.error.message)||"Error de la API");
+  const t=(j.content||[]).filter(q=>q.type=="text").map(q=>q.text).join(""),a=t.indexOf("{"),z=t.lastIndexOf("}");let o;try{o=JSON.parse(t.slice(a,z+1))}catch(e){throw new Error("La IA no devolvió un formato válido. Inténtalo otra vez.")}
+  const L=v=>Array.isArray(v)?v.join("\n"):String(v||"");$("f_gancho").value=L(o.gancho);$("f_guion").value=L(o.guion);$("f_cta").value=L(o.cta);$("f_hashtags").value=L(o.hashtags);wc();aviso("Listo: revísalo, edítalo y guarda")}
+ catch(e){aviso(e.message=="Failed to fetch"?"No pude conectar. Revisa tu internet.":e.message)}
+ b.disabled=false;b.textContent=old}
+$("ia").onclick=genIA;
+function limpiar(){$("form").reset();$("idx").value="";$("ft").textContent="Nueva idea o guion";$("gb").textContent="Guardar";wc()}
+$("form").addEventListener("submit",e=>{e.preventDefault();const o={};
+ F.forEach(([k,,t])=>{const el=$("f_"+k);o[k]=t=="p"?[...el.querySelectorAll("input:checked")].map(c=>c.value):t=="n"?(el.value===""?"":+el.value):el.value.trim()});
+ if(!o.titulo)return;const i=$("idx").value;if(i===""){o.id=uid();D.contenido.unshift(o)}else{o.id=D.contenido[+i].id||uid();D.contenido[+i]=o}
+ save();limpiar();view();aviso("Guardado")});
+$("cl").onclick=limpiar;
+document.addEventListener("click",e=>{const d=e.target.dataset,i=+d.i;
+ if(d.t){tab=d.t;view()}else if(d.f){filtro=d.f;view()}
+ else if(d.add){D[d.add].push({...ADD[d.add],...(d.add=="ventas"?{fecha:new Date().toISOString().slice(0,10)}:{})});save();view()}
+ else if(d.del&&confirm("¿Quitar esta fila?")){D[d.del].splice(i,1);save();view()}
+ else if(d.a=="ed"){const x=D.contenido[i];F.forEach(([k,,t])=>{const el=$("f_"+k);if(t=="p")el.querySelectorAll("input").forEach(c=>c.checked=(x.plataformas||[]).includes(c.value));else el.value=x[k]})
+  wc();$("idx").value=i;$("ft").textContent="Editando";$("gb").textContent="Guardar cambios";scrollTo({top:0,behavior:"smooth"});$("f_titulo").focus()}
+ else if(d.a=="del"&&confirm("¿Eliminar «"+D.contenido[i].titulo+"»? No se puede deshacer.")){D.contenido.splice(i,1);save();view()}
+ else if(d.a=="dup"){dup(i)}else if(d.a=="adv"){adv(i)}else if(d.a=="cp"){const x=D.contenido[i],t=[x.titulo,"Gancho: "+x.gancho,"Guion:\n"+x.guion,"Cierre: "+x.cta,x.hashtags].join("\n\n");
+  const ok=()=>aviso("Guion copiado"),vj=()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");ok()}catch(z){aviso("No se pudo copiar")}a.remove()};
+  navigator.clipboard?navigator.clipboard.writeText(t).then(ok,vj):vj()}});
+document.addEventListener("change",e=>{const t=e.target,d=t.dataset;
+ if(d.cfg)D.cfg[d.cfg]=t.value;
+ else if(d.s){D[d.s][+d.i][d.k]=t.type=="number"?(t.value===""?"":+t.value):t.value;if(tab!="contenido"){save();refreshCalc();return}}
+ else return;save();view()});
+document.addEventListener("click",e=>{
+ const h=e.target.closest(".hd");if(h){const id=h.dataset.id;open.has(id)?open.delete(id):open.add(id);lista();return}
+ const tp=e.target.closest(".tip");document.querySelectorAll(".tip.open").forEach(x=>{if(x!==tp)x.classList.remove("open")});if(tp)tp.classList.toggle("open");
+ if(!e.target.closest(".menu"))menu(0)});
+document.addEventListener("keydown",e=>{if(e.key=="Escape"){menu(0);document.querySelectorAll(".tip.open").forEach(x=>x.classList.remove("open"))}});
+const menu=o=>{$("dd").hidden=!o;$("mData").setAttribute("aria-expanded",!!o)};
+$("mData").onclick=e=>{e.stopPropagation();menu($("dd").hidden)};
+$("dd").addEventListener("click",e=>{if(e.target.closest("button"))menu(0)});
+$("sq").addEventListener("input",e=>{bq=e.target.value.toLowerCase().trim();lista()});
+$("sf").addEventListener("change",e=>{ff=e.target.value;lista()});
+$("so").addEventListener("change",e=>{ord=e.target.value;lista()});
+$("ea").onclick=()=>{const vis=[...document.querySelectorAll(".hd")].map(b=>b.dataset.id),all=vis.length&&vis.every(id=>open.has(id));vis.forEach(id=>all?open.delete(id):open.add(id));lista()};
+const hoyS=()=>new Date().toISOString().slice(0,10),lun=()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10)};
+function vacio(){return{cfg:{mes:hoyS().slice(0,7),semana:lun(),inicio:hoyS()},contenido:[],productos:[],lanzamiento:[],ventas:[],semana:Array.from({length:12},()=>({contactos:"",mejor:"",bien:"",mal:""})),objetivos:[0,0,0,0,0].map(m=>({meta:m}))}}
+$("blank").onclick=()=>{if(!confirm("Se borrarán tus ideas, productos, ventas y metas de este navegador para empezar en blanco. Antes puedes exportar a Excel. ¿Continuar?"))return;D=vacio();open.clear();save();view();aviso("Listo: empezaste en blanco")};
+$("demo").onclick=()=>{if(!confirm("Esto reemplaza lo que tienes con datos de ejemplo. ¿Continuar?"))return;D=seed();ensureIds();open.clear();save();view();aviso("Datos de ejemplo cargados")};
+const expMark=()=>{try{localStorage.setItem(K+"-exp",Date.now())}catch(e){}expInfo()};
+function expInfo(){let t=0;try{t=+localStorage.getItem(K+"-exp")}catch(e){}const el=$("exi"),d=t?Math.floor((Date.now()-t)/864e5):-1;el.textContent=t?"Último Excel: "+(d<1?"hoy":"hace "+d+(d==1?" día":" días")):"Aún no has exportado a Excel";el.style.color=d>=7||!t?"var(--warm)":"var(--muted)"}
+/* Excel */
+const idb=(m,v)=>new Promise((ok,no)=>{const q=indexedDB.open("sistema-fabi",1);q.onupgradeneeded=()=>q.result.createObjectStore("h");q.onerror=()=>no();q.onsuccess=()=>{const st=q.result.transaction("h",m=="get"?"readonly":"readwrite").objectStore("h"),r=m=="get"?st.get("f"):m=="put"?st.put(v,"f"):st.delete("f");r.onsuccess=()=>ok(r.result);r.onerror=()=>no()}});
+const nombre=h=>$("arch").textContent="Archivo vinculado: "+h.name,XT={description:"Excel",accept:{"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":[".xlsx"]}};
+async function handle(pick){let h=await idb("get").catch(()=>0);
+ if(h&&(await h.queryPermission({mode:"readwrite"}))!="granted"&&(await h.requestPermission({mode:"readwrite"}))!="granted")h=0;
+ if(!h){h=await pick();await idb("put",h).catch(()=>0)}nombre(h);return h}
+function toWB(){const wb=XLSX.utils.book_new();
+ for(const s in S){const sc=S[s],rows=D[s].map((r,i)=>{const o={};sc.c.forEach(c=>{const k=c[0];o[c[1]]=c[2]=="calc"?calc(s,r,i,k):c[2]=="arr"?(r[k]||[]).join(", "):r[k]??""});return o});
+  const ws=XLSX.utils.json_to_sheet(rows,{header:sc.c.map(c=>c[1])});ws["!cols"]=sc.c.map(c=>({wch:c[0]=="guion"?60:20}));XLSX.utils.book_append_sheet(wb,ws,sc.n)}
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.keys(CFGL).map(k=>({Ajuste:CFGL[k],Valor:D.cfg[k]}))),"Ajustes");return wb}
+$("exp").onclick=async()=>{if(!window.XLSX)return alert("Necesitas internet para cargar la herramienta de Excel. Conéctate y recarga la página.");
+ const wb=toWB();
+ if(!window.showSaveFilePicker){XLSX.writeFile(wb,"Sistema-Fabi.xlsx");expMark();return aviso("Descargado. Para sobrescribir el mismo archivo usa Chrome o Edge")}
+ try{const h=await handle(()=>showSaveFilePicker({suggestedName:"Sistema-Fabi.xlsx",types:[XT]})),w=await h.createWritable();await w.write(XLSX.write(wb,{bookType:"xlsx",type:"array"}));await w.close();expMark();aviso("Excel actualizado: "+h.name)}
+ catch(e){if(e.name!="AbortError")alert("No se pudo guardar. Si tienes el Excel abierto, ciérralo e inténtalo otra vez.")}};
+const p2=n=>String(n).padStart(2,"0");
+const un=(c,v)=>{const t=c[2];if(t=="num")return v===""?"":+v;if(t=="date"){if(v instanceof Date){const d=new Date(v.getTime()+432e5);return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())}return String(v)}
+ return t=="arr"?String(v).split(",").map(x=>x.trim()).filter(Boolean):String(v)};
+function aplicar(buf){let wb;try{wb=XLSX.read(buf,{type:"array",cellDates:true})}catch(e){return alert("Ese archivo no es un Excel válido.")}
+ if(!Object.values(S).some(x=>wb.SheetNames.includes(x.n)))return alert("Ese Excel no es de este sistema.");
+ if(!confirm("Esto reemplaza lo que ves en la página con lo que hay en el Excel. ¿Continuar?"))return;
+ for(const s in S){const ws=wb.Sheets[S[s].n];if(!ws)continue;const rows=XLSX.utils.sheet_to_json(ws,{defval:""}),cs=S[s].c.filter(c=>c[2]!="calc");
+  const rd=(r,o)=>{cs.forEach(c=>{if(c[1] in r)o[c[0]]=un(c,r[c[1]])});return o};
+  D[s]=S[s].fixed?D[s].map((o,i)=>rd(rows[i]||{},{...o})):rows.map(r=>rd(r,s=="contenido"?mk({}):{}))}
+ const aj=wb.Sheets.Ajustes;if(aj)XLSX.utils.sheet_to_json(aj,{defval:""}).forEach(r=>{const k=Object.keys(CFGL).find(q=>CFGL[q]==r.Ajuste);if(k)D.cfg[k]=String(un(["","","date"],r.Valor)).slice(0,k=="mes"?7:10)});
+ ensureIds();save();view();aviso("Excel importado: los cambios ya se ven")}
+$("imp").onclick=async()=>{if(!window.XLSX)return alert("Necesitas internet para cargar la herramienta de Excel. Conéctate y recarga la página.");
+ if(!window.showOpenFilePicker)return $("file").click();
+ try{const h=await handle(async()=>(await showOpenFilePicker({types:[XT]}))[0]);aplicar(await(await h.getFile()).arrayBuffer())}
+ catch(e){if(e.name!="AbortError")alert("No se pudo abrir el archivo.")}};
+$("file").onchange=async e=>{const f=e.target.files[0];if(f)aplicar(await f.arrayBuffer());e.target.value=""};
+$("cam").onclick=()=>idb("del").then(()=>{$("arch").textContent="Sin archivo vinculado";aviso("La próxima vez podrás elegir otro archivo")}).catch(()=>0);
+load();ensureIds();view();expInfo();idb("get").then(h=>h&&nombre(h)).catch(()=>0);
+</script></body></html>

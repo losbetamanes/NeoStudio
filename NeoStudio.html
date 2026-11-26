@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEOstudio</title>
+<style>
+:root{--bg:#F2F3EF;--surface:#FFFFFF;--ink:#18262E;--muted:#68777D;--line:#E0E4DF;--accent:#2D6A86;--accent-soft:#E3EEF3;--warm:#C8923A;--warm-soft:#F7EBD4}
+@media (prefers-color-scheme:dark){:root{--bg:#0F191E;--surface:#16232A;--ink:#E8EDEA;--muted:#8FA0A6;--line:#25353D;--accent:#7BBAD6;--accent-soft:#1D3641;--warm:#E0AE5C;--warm-soft:#33291A}}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg)}
+body{font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;padding:0 24px 80px}
+.wrap{max-width:1080px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+header{display:flex;align-items:center;gap:10px;padding:28px 0 0;color:var(--muted);font-size:14px}
+header svg{width:22px;height:22px;color:var(--warm)}
+.hero{padding:72px 0 48px}
+.fecha{color:var(--muted);font-size:15px;margin-bottom:14px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:clamp(40px,7vw,76px);line-height:1.05;letter-spacing:-.02em;max-width:14ch}
+.sub{margin-top:18px;color:var(--muted);font-size:18px;max-width:46ch}
+h2{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:28px;letter-spacing:-.01em}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.sec-head p{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:20px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card a{display:block;padding:24px 22px 22px;color:inherit;text-decoration:none;border-radius:20px;min-height:178px}
+.ico{width:44px;height:44px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:22px}
+.ico svg{width:22px;height:22px}
+.card h3{font-size:17px;font-weight:600;line-height:1.3;padding-right:34px}
+.card p{margin-top:6px;color:var(--muted);font-size:14px}
+.pin{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;color:var(--muted)}
+.pin svg{width:16px;height:16px}
+.pin:hover{border-color:var(--warm);color:var(--warm)}
+.card.hoy{border-color:var(--warm)}
+.card.hoy .ico{background:var(--warm-soft);color:var(--warm)}
+.card.hoy .pin{background:var(--warm);border-color:var(--warm);color:#fff}
+.tag{display:inline-block;margin-top:10px;font-size:12px;padding:2px 10px;border-radius:99px;background:var(--warm-soft);color:var(--warm)}
+.cal-sec{margin-top:88px}
+.cal{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px}
+.mes{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.mes strong{font-size:17px;font-weight:600;text-transform:capitalize}
+.nav{display:flex;gap:6px}
+.nav button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:16px}
+.nav button:hover{border-color:var(--accent)}
+.dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dias .dn{font-size:12px;color:var(--muted);padding:6px 0}
+.dia{aspect-ratio:1;border:0;background:transparent;border-radius:12px;position:relative;font-size:14px}
+.dia:hover{background:var(--accent-soft)}
+.dia.hoy{color:var(--warm);font-weight:600}
+.dia.sel{background:var(--accent);color:#fff}
+.dia.nota::after{content:"";position:absolute;bottom:7px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--warm)}
+.dia.sel.nota::after{background:#fff}
+.panel h3{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:22px;text-transform:capitalize;margin-bottom:14px}
+textarea{width:100%;min-height:92px;resize:vertical;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px;padding:12px 14px}
+textarea:focus{outline:none;border-color:var(--accent)}
+.btn{margin-top:10px;border:0;border-radius:99px;background:var(--accent);color:#fff;padding:10px 20px;font-weight:600;font-size:14px}
+.btn.sec{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+.notas{list-style:none;padding:0;margin-top:18px;display:grid;gap:8px}
+.notas li{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--bg);font-size:15px;white-space:pre-wrap;word-break:break-word}
+.notas button{border:0;background:transparent;color:var(--muted);font-size:13px;flex:none}
+.notas button:hover{color:var(--warm)}
+.vacio{color:var(--muted);font-size:14px;margin-top:16px}
+.copia{margin-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+footer{margin-top:64px;color:var(--muted);font-size:13px}
+.card p{padding-right:26px}
+.grip{position:absolute;bottom:14px;right:14px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);border-radius:8px;cursor:grab;display:grid;place-items:center;opacity:.55}
+.grip:hover,.grip:focus-visible{opacity:1;background:var(--accent-soft)}
+.grip svg{width:16px;height:16px}
+.card.arrastrando{opacity:.4}
+.card.sobre{border-color:var(--accent);border-style:dashed}
+.linkbtn{border:0;background:transparent;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:0}
+.linkbtn:hover{color:var(--accent)}
+dialog{border:1px solid var(--line);border-radius:24px;background:var(--surface);color:var(--ink);padding:28px;width:min(520px,calc(100vw - 32px));max-height:80vh;overflow:auto}
+dialog::backdrop{background:rgba(15,25,30,.45)}
+.dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cerrar{border:0;background:transparent;font-size:22px;color:var(--muted);width:34px;height:34px;border-radius:50%}
+.cerrar:hover{background:var(--accent-soft)}
+.artistas{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:8px}
+.artista{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;background:var(--bg);color:inherit;text-decoration:none;border:1px solid transparent}
+a.artista:hover{border-color:var(--accent)}
+.av{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:600;flex:none}
+.artista .nom{font-weight:600;font-size:15px;flex:1;word-break:break-word}
+.artista .tag{margin:0}
+.estado{color:var(--muted);font-size:14px;margin-top:10px}
+.dfoot{display:flex;gap:18px;margin-top:20px;flex-wrap:wrap}
+@media (max-width:780px){.cal{grid-template-columns:1fr}.hero{padding:48px 0 36px}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+
+/* ===== Tema: mismo look de Splits y Contratos (solo aspecto, no toca el funcionamiento) ===== */
+:root{--bg:#0a0a0c;--surface:#141417;--ink:#f3efe6;--muted:#9b978d;--line:#2b2b31;--accent:#d9a441;--accent-soft:rgba(217,164,65,.13);--warm:#f0c36a;--warm-soft:rgba(240,195,106,.16)}
+body{font-family:"Helvetica Neue",Arial,sans-serif}
+h1,h2,.panel h3{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:800;letter-spacing:-.03em}
+h1{font-size:clamp(26px,7.4vw,84px);line-height:1;letter-spacing:-.045em;max-width:none;white-space:nowrap}
+h2{font-size:24px}
+.panel h3{font-size:20px;font-weight:700}
+.fecha{color:var(--accent);font-size:16px}
+.card,.panel,dialog{border-radius:14px}
+.card a{border-radius:14px}
+.ico{border-radius:10px}
+.btn{border-radius:8px;color:#14110a;font-weight:700}
+.btn.sec{color:var(--muted);font-weight:500}
+.nav button,.dia,.artista,.notas li{border-radius:8px}
+.nav button{border-radius:8px}
+textarea{border-radius:8px;background:#0e0e11}
+.dia.sel,.card.hoy .pin{color:#14110a}
+.dia.sel.nota::after{background:#14110a}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+
+/* ===== Asistente IA ===== */
+#iaBtn{position:fixed;right:20px;bottom:20px;z-index:50;display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:var(--accent);color:#14110a;font:700 15px "Helvetica Neue",Arial,sans-serif;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#iaBtn svg{width:20px;height:20px}
+#iaPanel{position:fixed;right:20px;bottom:20px;z-index:60;width:min(420px,calc(100vw - 24px));height:min(660px,calc(100vh - 40px));display:none;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.6);overflow:hidden;font-family:"Helvetica Neue",Arial,sans-serif}
+#iaPanel.abierto{display:flex}
+.ia-top{display:flex;gap:8px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+.ia-top strong{margin-right:auto;font-size:16px}
+#iaPanel select,#iaPanel input,#iaPanel textarea{font:inherit;font-size:14px;color:var(--ink);background:#0e0e11;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+#iaPanel button{font:inherit;font-size:14px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);padding:6px 10px}
+#iaPanel button.ia-go{background:var(--accent);border:0;color:#14110a;font-weight:700}
+#iaPanel button:disabled{opacity:.5;cursor:wait}
+#iaPanel :focus-visible,#iaBtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ia-aj{border-bottom:1px solid var(--line);padding:8px 12px;font-size:13px;color:var(--muted)}
+.ia-aj summary{cursor:pointer}
+.ia-aj label{display:block;margin:8px 0 4px}
+.ia-aj input,.ia-aj textarea,.ia-aj select{width:100%}
+.ia-aj textarea{height:84px;resize:vertical}
+#iaLog{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ia-m{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;word-wrap:break-word;font-size:15px;line-height:1.5}
+.ia-yo{align-self:flex-end;background:var(--accent-soft)}
+.ia-ia{align-self:flex-start;background:#0e0e11;border:1px solid var(--line)}
+.ia-err{align-self:center;color:#ffb4a8;font-size:13px;text-align:center}
+.ia-vacio{margin:auto;color:var(--muted);text-align:center;font-size:14px;max-width:300px}
+.ia-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.ia-form textarea{flex:1;height:44px;resize:none}
+@media (max-width:520px){#iaPanel{right:0;bottom:0;width:100vw;height:100vh;border-radius:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>
+    NEOstudio
+  </header>
+
+  <section class="hero">
+    <p class="fecha" id="fecha"></p>
+    <h1 id="saludo"></h1>
+    <p class="sub">¿Por dónde empezamos?</p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Módulos</h2>
+      <p style="display:flex;gap:16px;align-items:baseline"><span id="contador"></span><button class="linkbtn" id="orden">Orden original</button></p>
+    </div>
+    <div class="grid" id="modulos"></div>
+  </section>
+
+  <section class="cal-sec">
+    <div class="sec-head">
+      <h2>Calendario y notas</h2>
+      <p>Se guardan en este navegador</p>
+    </div>
+    <div class="cal">
+      <div class="panel">
+        <div class="mes">
+          <strong id="mesTitulo"></strong>
+          <div class="nav">
+            <button id="prev" aria-label="Mes anterior">‹</button>
+            <button id="next" aria-label="Mes siguiente">›</button>
+          </div>
+        </div>
+        <div class="dias" id="dias"></div>
+      </div>
+      <div class="panel">
+        <h3 id="diaTitulo"></h3>
+        <label for="nuevaNota" class="vacio" style="margin:0 0 8px;display:block">Escribe una nota para este día</label>
+        <textarea id="nuevaNota" placeholder="Grabar reel de zampoña, subir videoclip…"></textarea>
+        <button class="btn" id="guardar">Guardar nota</button>
+        <ul class="notas" id="lista"></ul>
+        <p class="vacio" id="vacio">Este día no tiene notas.</p>
+        <div class="copia">
+          <button class="btn sec" id="exportar">Descargar copia</button>
+          <button class="btn sec" id="importar">Cargar copia</button>
+          <input type="file" id="archivo" accept="application/json" hidden>
+          <button class="btn sec" id="pegarRes">Pegar respaldo del calendario de conciertos</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Para añadir una aplicación nueva, agrega una línea a la lista MODULOS dentro de este archivo. &nbsp;·&nbsp; <button class="linkbtn" id="cambNom">Cambiar mi nombre</button></footer>
+</div>
+
+<dialog id="dlgRes" aria-labelledby="tRes">
+  <div class="dhead"><h2 id="tRes">Pegar respaldo</h2><button class="cerrar" id="cerrarRes" aria-label="Cerrar">×</button></div>
+  <p class="estado">En «Calendario de Conciertos» toca Respaldo y luego Copiar. Pega aquí el texto.</p>
+  <textarea id="txtRes" placeholder="Pega aquí el respaldo" style="margin-top:12px"></textarea>
+  <p class="estado" id="msgRes"></p>
+  <button class="btn" id="okRes">Mostrar en el calendario</button>
+  <div class="dfoot"><button class="linkbtn" id="limpRes">Quitar los eventos pegados</button></div>
+</dialog>
+
+<dialog id="dlgNom" aria-labelledby="tNom"><h2 id="tNom">Bienvenido a NEOstudio</h2><p class="estado">Vamos a configurar tu sistema. ¿Cómo te llamas?</p><input id="inNom" placeholder="Tu nombre" autocomplete="off" style="width:100%;margin:14px 0;padding:11px 12px;background:#0e0e11;color:var(--ink);border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px"><button class="btn" id="okNom">Empezar</button></dialog>
+
+<dialog id="dlgArt" aria-labelledby="tArt">
+  <div class="dhead"><h2 id="tArt">Mis artistas</h2><button class="cerrar" id="cerrarArt" aria-label="Cerrar">×</button></div>
+  <p class="estado" id="estadoArt"></p>
+  <ul class="artistas" id="listaArt"></ul>
+  <button class="btn" id="btnConectar" hidden>Elegir carpeta</button>
+  <div class="dfoot"><button class="linkbtn" id="actArt">Actualizar lista</button><button class="linkbtn" id="cambArt">Cambiar carpeta</button></div>
+</dialog>
+
+<script>
+/* ===== Tus módulos: nombre, descripción, carpeta/archivo y icono ===== */
+const MODULOS = [
+  {n:"Calendario de Conciertos", d:"Tus conciertos, pagos y fechas.", h:"Calendar/index.html", i:"cal"},
+  {n:"Construir Página", d:"Crea tu pagina para artista en segundos", h:"GeneradorWeb/index.html", i:"paginas"},
+  {n:"Acceder a mis Artistas", d:"Elige un artista de tu lista.", h:"Artistas", i:"artista", lista:true},
+  {n:"Acortar Enlaces", d:"Enlaces cortos para tus historias y redes.", h:"Links/index.html", i:"link"},
+  {n:"Administrar Mis Obras", d:"Repertorio, obras y SAYCO.", h:"Obras/index.html", i:"obra"},
+  {n:"Splits y Contratos", d:"Splits, contratos de servicio e interpretación en PDF.", h:"Contratos/index.html", i:"contrato"},
+  {n:"Crear Contenido", d:"Guiones, reels y videoclips.", h:"Contenido/index.html", i:"video"},
+  {n:"Grabadora", d:"Graba ideas, ensayos y melodías.", h:"Grabadora/index.html", i:"mic"},
+  {n:"Reproducir Mis PlayList", d:"Tu música en un solo reproductor.", h:"PlayList/index.html", i:"play"},
+  {n:"Gestor de Mensajes", d:"Escribe por WhatsApp a tus contactos, por grupos.", h:"Wp/index.html", i:"mensaje"}
+];
+const ICONOS = {
+  sample:'<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM10 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM10 12.01h.01M18 8v4a8 8 0 0 1-1.07 4"/>',
+  libros:'<path d="M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.5 14.7-3-.8z"/>',
+  artista:'<path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  obra:'<path d="M9 18V6l10-2v12M9 18a3 3 0 11-6 0 3 3 0 016 0zM19 16a3 3 0 11-6 0 3 3 0 016 0z"/>',
+  paginas:'<path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM3 9h18M9 21V9"/>',
+  video:'<path d="M3 6h12v12H3zM15 10l6-3v10l-6-3"/>',
+  audifonos:'<path d="M4 15v-3a8 8 0 0116 0v3M4 15h3v5H4zM17 15h3v5h-3z"/>',
+  mezcla:'<path d="M5 4v16M12 4v16M19 4v16M3 9h4M10 15h4M17 8h4"/>',
+  onda:'<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2"/>',
+  play:'<path d="M12 21a9 9 0 100-18 9 9 0 000 18zM10 8.5v7l6-3.5z"/>',
+  mensaje:'<path d="M4 5h16v11H10l-6 4zM8 9h8M8 12.5h5"/>',
+  contrato:'<path d="M7 3h8l4 4v14H7zM14 3v5h5M10 13h6M10 17h4"/>',
+  cal:'<path d="M5 5h14v15H5zM5 9h14M9 3v4M15 3v4"/>',
+  link:'<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
+  mic:'<path d="M12 3a3 3 0 013 3v5a3 3 0 01-6 0V6a3 3 0 013-3zM5 11a7 7 0 0014 0M12 18v3"/>'
+};
+const ESTRELLA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg>';
+
+/* ===== Almacenamiento en el navegador (JSON interno) ===== */
+const load=(k,f)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const pad=n=>String(n).padStart(2,"0");
+const clave=(y,m,d)=>y+"-"+pad(m+1)+"-"+pad(d);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+const hoy=new Date();
+const hoyClave=clave(hoy.getFullYear(),hoy.getMonth(),hoy.getDate());
+
+/* ===== Encabezado ===== */
+const h=hoy.getHours();
+function saludar(){const nm=load("hub_nombre","");document.getElementById("saludo").textContent=(h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches")+(nm?", "+nm:"")+".";}saludar();
+document.getElementById("fecha").textContent=cap(hoy.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"}));
+
+/* ===== Módulos ===== */
+let marcados=load("hub_hoy",{fecha:"",ids:[]});
+if(marcados.fecha!==hoyClave){marcados={fecha:hoyClave,ids:[]};save("hub_hoy",marcados)}
+let orden=load("hub_orden",[]);
+function ordenados(){
+  const mapa=new Map(MODULOS.map(m=>[m.h,m]));
+  const r=[];
+  orden.forEach(k=>{if(mapa.has(k)){r.push(mapa.get(k));mapa.delete(k)}});
+  mapa.forEach(m=>r.push(m));
+  return r;
+}
+function mover(de,a){
+  const ids=ordenados().map(m=>m.h);
+  const [x]=ids.splice(de,1);
+  ids.splice(a,0,x);
+  orden=ids;save("hub_orden",orden);pintarModulos();
+}
+const cont=document.getElementById("modulos");
+
+function pintarModulos(){
+  cont.innerHTML="";
+  ordenados().forEach((m,i)=>{
+    const idx=m.h;
+    const activo=marcados.ids.includes(idx);
+    const card=document.createElement("div");
+    card.className="card"+(activo?" hoy":"");
+    const a=document.createElement("a");
+    a.draggable=false;
+    if(m.lista){a.href="#";a.onclick=e=>{e.preventDefault();abrirArtistas()}}
+    else{a.href=encodeURI(m.h);a.target="_blank";a.rel="noopener"}
+    a.innerHTML='<div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONOS[m.i]+'</svg></div><h3></h3><p></p>'+(m.wip?'<span class="tag">En construcción</span>':'');
+    a.querySelector("h3").textContent=m.n;
+    a.querySelector("p").textContent=m.d;
+    const b=document.createElement("button");
+    b.className="pin";b.innerHTML=ESTRELLA;
+    b.setAttribute("aria-pressed",activo);
+    b.setAttribute("aria-label",(activo?"Quitar de hoy: ":"Marcar para hoy: ")+m.n);
+    b.onclick=()=>{
+      marcados.ids=activo?marcados.ids.filter(x=>x!==idx):marcados.ids.concat(idx);
+      save("hub_hoy",marcados);pintarModulos();
+    };
+    const g=document.createElement("button");
+    g.className="grip";g.type="button";
+    g.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+    g.setAttribute("aria-label","Mover "+m.n+". Usa las flechas del teclado");
+    g.onkeydown=e=>{
+      let nuevo=i;
+      if(e.key==="ArrowLeft"||e.key==="ArrowUp")nuevo=i-1;
+      else if(e.key==="ArrowRight"||e.key==="ArrowDown")nuevo=i+1;
+      else return;
+      e.preventDefault();
+      if(nuevo<0||nuevo>=MODULOS.length)return;
+      mover(i,nuevo);cont.querySelectorAll(".grip")[nuevo].focus();
+    };
+    card.draggable=true;
+    card.addEventListener("dragstart",e=>{card.classList.add("arrastrando");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",String(i))});
+    card.addEventListener("dragend",()=>card.classList.remove("arrastrando"));
+    card.addEventListener("dragover",e=>{e.preventDefault();card.classList.add("sobre")});
+    card.addEventListener("dragleave",()=>card.classList.remove("sobre"));
+    card.addEventListener("drop",e=>{e.preventDefault();const de=Number(e.dataTransfer.getData("text/plain"));if(!isNaN(de)&&de!==i)mover(de,i)});
+    card.append(a,b,g);cont.append(card);
+  });
+  const n=marcados.ids.length;
+  document.getElementById("contador").textContent=n?(n===1?"1 módulo marcado para hoy":n+" módulos marcados para hoy"):"Nada marcado para hoy";
+}
+pintarModulos();
+
+document.getElementById("orden").onclick=()=>{orden=[];save("hub_orden",orden);pintarModulos()};
+
+/* ===== Artistas: lee las carpetas dentro de "Acceder a mis Artistas" ===== */
+const ART_RESPALDO=[];
+const el=id=>document.getElementById(id);
+let carpeta=null;
+const LOCAL=!window.showDirectoryPicker; /* Safari/Firefox: sin acceso directo a carpetas */
+
+function dbArt(){return new Promise((res,rej)=>{const r=indexedDB.open("hub_mi_estudio",1);r.onupgradeneeded=()=>r.result.createObjectStore("h");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function guardarCarpeta(h){try{const db=await dbArt();await new Promise((res,rej)=>{const t=db.transaction("h","readwrite");t.objectStore("h").put(h,"artistas");t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+async function leerCarpeta(){try{const db=await dbArt();return await new Promise((res,rej)=>{const q=db.transaction("h").objectStore("h").get("artistas");q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}catch(e){return null}}
+
+function pintarArtistas(items,msg,baseOv){
+  el("estadoArt").textContent=msg;
+  const base=baseOv||(carpeta?carpeta.name:MODULOS.find(m=>m.lista).h);
+  const ul=el("listaArt");ul.innerHTML="";
+  items.forEach(it=>{
+    const li=document.createElement("li");
+    const fila=document.createElement(it.tieneIndex?"a":"div");
+    fila.className="artista";
+    if(it.tieneIndex){fila.href=encodeURI(base+"/"+it.n+"/index.html");fila.target="_blank";fila.rel="noopener"}
+    const av=document.createElement("span");av.className="av";av.textContent=it.n.charAt(0).toUpperCase();
+    const nom=document.createElement("span");nom.className="nom";nom.textContent=it.n;
+    fila.append(av,nom);
+    if(!it.tieneIndex){const t=document.createElement("span");t.className="tag";t.textContent=it.vacia?"Carpeta vacía":"Sin index.html";fila.append(t)}
+    li.append(fila);ul.append(li);
+  });
+}
+function mostrarConectar(msg,txt){
+  el("estadoArt").textContent=msg;el("listaArt").innerHTML="";
+  const b=el("btnConectar");b.textContent=txt;b.hidden=false;
+}
+async function escanear(){
+  el("btnConectar").hidden=true;
+  el("estadoArt").textContent="Leyendo carpetas…";
+  const items=[];
+  try{
+    for await(const [n,e] of carpeta.entries()){
+      if(e.kind!=="directory"||n.startsWith("."))continue;
+      let tieneIndex=false,vacia=true;
+      try{await e.getFileHandle("index.html");tieneIndex=true}catch(x){}
+      try{for await(const [k] of e.entries()){if(!k.startsWith(".")){vacia=false;break}}}catch(x){}
+      items.push({n,tieneIndex,vacia});
+    }
+  }catch(err){mostrarConectar("No pude leer la carpeta. Vuelve a elegirla.","Elegir carpeta");return}
+  items.sort((a,b)=>a.n.localeCompare(b.n,"es"));
+  pintarArtistas(items,items.length?items.length+(items.length===1?" artista encontrado":" artistas encontrados")+" en «"+carpeta.name+"»":"Aún no hay carpetas de artistas dentro de «"+carpeta.name+"».");
+}
+async function elegirCarpeta(){
+  try{
+    carpeta=await window.showDirectoryPicker({mode:"read"});
+    await guardarCarpeta(carpeta);escanear();
+  }catch(e){el("estadoArt").textContent="No se eligió ninguna carpeta."}
+}
+async function conectar(){
+  if(carpeta){
+    try{const p=await carpeta.requestPermission({mode:"read"});if(p==="granted"){escanear();return}}catch(e){}
+  }
+  elegirCarpeta();
+}
+async function abrirArtistas(){
+  el("dlgArt").showModal();
+  if(LOCAL){
+    carpeta=null;
+    const c=load("hub_art_cache",null);
+    if(c&&c.items&&c.items.length)pintarArtistas(c.items,c.items.length+" artistas guardados de «"+c.base+"». Para ver los nuevos pulsa «Actualizar lista» y elige la carpeta.",c.base);
+    else mostrarConectar("Elige la carpeta «"+MODULOS.find(m=>m.lista).h+"» para leer tus artistas.","Elegir carpeta");
+    return;
+  }
+  carpeta=await leerCarpeta();
+  if(!carpeta){mostrarConectar("Elige una sola vez la carpeta «Acceder a mis Artistas» y quedará recordada.","Elegir carpeta");return}
+  let p="prompt";
+  try{p=await carpeta.queryPermission({mode:"read"})}catch(e){}
+  if(p==="granted")escanear();else mostrarConectar("Necesito tu permiso para ver las carpetas de «"+carpeta.name+"».","Permitir acceso");
+}
+function elegirLocal(){
+  const inp=document.createElement("input");inp.type="file";inp.webkitdirectory=true;inp.multiple=true;
+  inp.onchange=()=>{
+    const fs=[...inp.files];
+    if(!fs.length){el("estadoArt").textContent="No se eligió ninguna carpeta.";return}
+    const base=fs[0].webkitRelativePath.split("/")[0];
+    const mapa=new Map();
+    fs.forEach(f=>{
+      const p=f.webkitRelativePath.split("/");
+      if(p.length<3||p[1].startsWith("."))return;
+      const o=mapa.get(p[1])||{n:p[1],tieneIndex:false,vacia:true};
+      if(!p[2].startsWith("."))o.vacia=false;
+      if(p.length===3&&p[2]==="index.html")o.tieneIndex=true;
+      mapa.set(p[1],o);
+    });
+    const items=[...mapa.values()].sort((a,b)=>a.n.localeCompare(b.n,"es"));
+    save("hub_art_cache",{base,items});
+    el("btnConectar").hidden=true;
+    pintarArtistas(items,items.length?items.length+(items.length===1?" artista encontrado":" artistas encontrados")+" en «"+base+"».":"No encontré carpetas de artistas dentro de «"+base+"».",base);
+  };
+  inp.click();
+}
+el("btnConectar").onclick=()=>LOCAL?elegirLocal():conectar();
+el("actArt").onclick=()=>LOCAL?elegirLocal():(carpeta?conectar():abrirArtistas());
+el("cambArt").onclick=()=>LOCAL?elegirLocal():elegirCarpeta();
+el("cerrarArt").onclick=()=>el("dlgArt").close();
+el("dlgArt").addEventListener("click",e=>{if(e.target===el("dlgArt"))el("dlgArt").close()});
+
+/* ===== Calendario ===== */
+let notas=load("hub_notas",{});
+let año=hoy.getFullYear(),mes=hoy.getMonth(),sel=hoyClave;
+const DIAS=["L","M","X","J","V","S","D"];
+const $=id=>document.getElementById(id);
+const todosEv=()=>{const mp=new Map();[...load("neo_eventos",[]),...load("hub_eventos_resp",[])].forEach(e=>{if(e&&e.d)mp.set(e.id,e)});return [...mp.values()]};
+const evs=k=>todosEv().filter(e=>e.d===k).sort((a,b)=>(a.t||"").localeCompare(b.t||""));
+
+function pintarCalendario(){
+  $("mesTitulo").textContent=new Date(año,mes,1).toLocaleDateString("es-CO",{month:"long",year:"numeric"});
+  const g=$("dias");g.innerHTML="";
+  DIAS.forEach(d=>{const e=document.createElement("div");e.className="dn";e.textContent=d;g.append(e)});
+  const inicio=(new Date(año,mes,1).getDay()+6)%7;
+  const total=new Date(año,mes+1,0).getDate();
+  for(let i=0;i<inicio;i++)g.append(document.createElement("div"));
+  for(let d=1;d<=total;d++){
+    const k=clave(año,mes,d);
+    const b=document.createElement("button");
+    b.className="dia"+(k===hoyClave?" hoy":"")+(k===sel?" sel":"")+((notas[k]&&notas[k].length)||evs(k).length?" nota":"");
+    b.textContent=d;
+    b.setAttribute("aria-label",d+" de "+new Date(año,mes,d).toLocaleDateString("es-CO",{month:"long"})+(notas[k]&&notas[k].length?", con notas":""));
+    b.onclick=()=>{sel=k;pintarCalendario();pintarNotas()};
+    g.append(b);
+  }
+}
+
+function pintarNotas(){
+  const [y,m,d]=sel.split("-").map(Number);
+  $("diaTitulo").textContent=new Date(y,m-1,d).toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"});
+  const ul=$("lista");ul.innerHTML="";
+  const lista=notas[sel]||[];
+  lista.forEach(n=>{
+    const li=document.createElement("li");
+    const t=document.createElement("span");t.textContent=n.t;
+    const x=document.createElement("button");x.textContent="Borrar";
+    x.setAttribute("aria-label","Borrar nota");
+    x.onclick=()=>{
+      notas[sel]=notas[sel].filter(z=>z.id!==n.id);
+      if(!notas[sel].length)delete notas[sel];
+      save("hub_notas",notas);pintarCalendario();pintarNotas();
+    };
+    li.append(t,x);ul.append(li);
+  });
+  const ev=evs(sel);ev.forEach(e=>{const li=document.createElement("li");li.textContent="🎸 "+e.g+(e.t?" · "+e.t:"")+(e.p?" · "+e.p:"")+" · "+(e.paid?"pagado":"pago pendiente");ul.append(li)});
+  $("vacio").style.display=(lista.length||ev.length)?"none":"block";
+}
+
+$("guardar").onclick=()=>{
+  const t=$("nuevaNota").value.trim();
+  if(!t)return;
+  (notas[sel]=notas[sel]||[]).push({id:Date.now(),t});
+  save("hub_notas",notas);
+  $("nuevaNota").value="";
+  pintarCalendario();pintarNotas();
+};
+$("prev").onclick=()=>{mes--;if(mes<0){mes=11;año--}pintarCalendario()};
+$("next").onclick=()=>{mes++;if(mes>11){mes=0;año++}pintarCalendario()};
+
+/* ===== Copia de seguridad de las notas ===== */
+$("exportar").onclick=()=>{
+  const blob=new Blob([JSON.stringify(notas,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="notas-calendario.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$("importar").onclick=()=>$("archivo").click();
+$("archivo").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result);
+      Object.keys(data).forEach(k=>{
+        notas[k]=(notas[k]||[]).concat(data[k].filter(n=>!(notas[k]||[]).some(z=>z.id===n.id)));
+      });
+      save("hub_notas",notas);pintarCalendario();pintarNotas();
+    }catch(err){alert("El archivo no es una copia válida.")}
+  };
+  r.readAsText(f);e.target.value="";
+};
+
+pintarCalendario();pintarNotas();
+addEventListener("focus",()=>{pintarCalendario();pintarNotas()});
+addEventListener("storage",()=>{pintarCalendario();pintarNotas()});
+
+/* ===== Pegar respaldo del calendario de conciertos ===== */
+const dr=el("dlgRes");
+el("pegarRes").onclick=()=>{el("msgRes").textContent="";dr.showModal();el("txtRes").focus()};
+el("cerrarRes").onclick=()=>dr.close();
+dr.addEventListener("click",e=>{if(e.target===dr)dr.close()});
+el("okRes").onclick=()=>{
+  try{
+    let o=JSON.parse(el("txtRes").value);if(Array.isArray(o))o={ev:o};
+    const ev=(o.ev||[]).filter(e=>e&&e.d&&e.g);
+    if(!ev.length)throw 0;
+    save("hub_eventos_resp",ev);
+    const prox=ev.map(e=>e.d).sort().find(d=>d>=hoyClave)||ev.map(e=>e.d).sort().pop();
+    const [y,mo,d]=prox.split("-").map(Number);año=y;mes=mo-1;sel=prox;
+    pintarCalendario();pintarNotas();
+    el("txtRes").value="";el("msgRes").textContent=ev.length+(ev.length===1?" evento cargado.":" eventos cargados.");
+    setTimeout(()=>dr.close(),1000);
+  }catch(e){el("msgRes").textContent="Ese texto no es un respaldo válido. Cópialo de nuevo desde el calendario de conciertos."}
+};
+el("limpRes").onclick=()=>{save("hub_eventos_resp",[]);pintarCalendario();pintarNotas();el("msgRes").textContent="Eventos pegados quitados."};
+
+/* ===== Nombre del sistema (primera vez) ===== */
+const dn=el("dlgNom");
+function pedirNombre(){el("inNom").value=load("hub_nombre","");dn.showModal();el("inNom").focus()}
+el("okNom").onclick=()=>{const v=el("inNom").value.trim();if(!v){el("inNom").focus();return}save("hub_nombre",v);saludar();dn.close()};
+el("inNom").onkeydown=e=>{if(e.key==="Enter")el("okNom").click()};
+dn.addEventListener("cancel",e=>{if(!load("hub_nombre",""))e.preventDefault()});
+el("cambNom").onclick=pedirNombre;
+if(!load("hub_nombre",""))pedirNombre();
+</script>
+
+
+<button id="iaBtn" type="button" aria-label="Abrir asistente IA">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+  Asistente
+</button>
+<section id="iaPanel" aria-label="Asistente IA">
+  <div class="ia-top">
+    <strong>Asistente</strong>
+    <select id="iaModo" aria-label="Modo"></select>
+    <button type="button" id="iaNueva">Nueva</button>
+    <button type="button" id="iaCerrar" aria-label="Cerrar">×</button>
+  </div>
+  <details class="ia-aj" id="iaAj">
+    <summary>Ajustes: modelo, clave y notas</summary>
+    <label for="iaModelo">Modelo</label>
+    <select id="iaModelo"><option value="claude-haiku-5-5">Haiku 5.5 (rápido y económico)</option><option value="claude-sonnet-5-5">Sonnet 5.5 (equilibrado, recomendado)</option><option value="claude-opus-5-5">Opus 5.5 (el más potente, cuesta más)</option></select>
+    <label for="iaClave">Clave de la API (solo si no usas el archivo config-ia.js)</label>
+    <input id="iaClave" type="password" placeholder="sk-ant-..." autocomplete="off">
+    <label for="iaNotas">Notas permanentes (datos nuevos, ejemplos de tu estilo)</label>
+    <textarea id="iaNotas" placeholder="Ej: este mes lanzo un álbum. Mi estilo: cercano, con humor."></textarea>
+  </details>
+  <div id="iaLog"><p class="ia-vacio" id="iaVacio">Elige un modo arriba y escribe. Por ejemplo, en «Guionista»: «un reel de 30 segundos enseñando una escala en la quena».</p></div>
+  <form class="ia-form" id="iaForm">
+    <textarea id="iaTxt" placeholder="Escribe aquí… (Enter envía)" rows="1" aria-label="Mensaje"></textarea>
+    <button class="ia-go" id="iaGo">Enviar</button>
+  </form>
+</section>
+<script src="config-ia.js"></script>
+<script>
+(function(){
+const NOM=(()=>{try{return JSON.parse(localStorage.getItem("hub_nombre"))||"el artista"}catch(e){return "el artista"}})();
+const BASE=`Eres el asistente personal de ${NOM} dentro de su sistema de páginas NEOstudio. Responde siempre en español, claro y directo. ${NOM} puede no tener formación técnica: explica paso a paso y en lenguaje sencillo. Si te falta información, pregunta en vez de inventar. No asumas datos personales: si necesitas saber de su música, audiencia o proyectos, pregúntale o usa las notas permanentes.`;
+const MODOS={
+ general:{n:"General",t:"Responde dudas sobre mi sistema, mi música, mi negocio y mi contenido."},
+ guion:{n:"Guionista",t:"Escribe guiones para reels (15 a 60 segundos) y videos de YouTube. Estructura: gancho en los primeros 3 segundos, desarrollo y cierre con llamada a la acción. Entrega el texto listo para decir y pon entre corchetes lo que toco o muestro en cámara. Si falta tema, duración o plataforma, pregunta primero."},
+ ventas:{n:"Ventas y plan",t:"Ayuda a monetizar mi audiencia, reactivar el curso de quena y planear mi calendario de contenido y lanzamientos, con pasos concretos y realistas."},
+ obras:{n:"Obras y contratos",t:"Explica splits, contratos de servicio e interpretación, SAYCO y ACIMPRO en lenguaje simple. No eres abogado: para decisiones legales, recomienda confirmar con un profesional."},
+ mensajes:{n:"Mensajes WhatsApp",t:"Redacta mensajes de WhatsApp cortos y cálidos para mis contactos, listos para copiar, con {nombre} donde se personalice."},
+ musica:{n:"Música y mezcla",t:"Ayuda con mezcla, masterización, samples, beats y plugins VST, con explicaciones paso a paso."}
+};
+const L=(k,f)=>{try{const v=localStorage.getItem(k);return v===null?f:v}catch(e){return f}};
+const S=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const q=id=>document.getElementById(id);
+const panel=q("iaPanel"),log=q("iaLog"),txt=q("iaTxt"),go=q("iaGo"),modo=q("iaModo"),clave=q("iaClave"),notas=q("iaNotas"),modelo=q("iaModelo");
+const KEY=()=>{const c=(window.IA_CLAVE||"").trim();return c&&!c.startsWith("PEGA")?c:clave.value.trim()};
+let hist=[];
+Object.keys(MODOS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=MODOS[k].n;modo.appendChild(o)});
+modo.value=MODOS[L("ia_modo","general")]?L("ia_modo","general"):"general";
+clave.value=L("ia_clave","");notas.value=L("ia_notas","");
+modelo.value=L("ia_modelo","claude-sonnet-5-5");if(!modelo.value)modelo.value="claude-sonnet-5-5";
+modelo.onchange=()=>S("ia_modelo",modelo.value);
+modo.onchange=()=>S("ia_modo",modo.value);
+clave.onchange=()=>S("ia_clave",clave.value.trim());
+notas.onchange=()=>S("ia_notas",notas.value);
+
+function abrir(v){panel.classList.toggle("abierto",v);q("iaBtn").style.display=v?"none":"flex";if(v){if(!KEY())q("iaAj").open=true;txt.focus()}}
+q("iaBtn").onclick=()=>abrir(true);
+q("iaCerrar").onclick=()=>abrir(false);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("abierto"))abrir(false)});
+q("iaNueva").onclick=()=>{hist=[];log.innerHTML='<p class="ia-vacio" id="iaVacio">Charla nueva. Escribe un mensaje.</p>'};
+
+function burbuja(c,t){const v=q("iaVacio");if(v)v.remove();const d=document.createElement("div");d.className="ia-m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function aviso(t){const d=document.createElement("div");d.className="ia-err";d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight}
+
+function sistema(){
+  let s=BASE;
+  if(typeof MODULOS!=="undefined")s+="\n\nMÓDULOS DE MI HUB:\n"+MODULOS.map(m=>"- "+m.n+": "+m.d).join("\n");
+  s+="\n\nMODO ACTUAL ("+MODOS[modo.value].n+"): "+MODOS[modo.value].t;
+  if(notas.value.trim())s+="\n\nNOTAS PERMANENTES MÍAS:\n"+notas.value.trim();
+  return s;
+}
+
+async function enviar(){
+  const t=txt.value.trim();if(!t||go.disabled)return;
+  if(!KEY()){q("iaAj").open=true;aviso("Falta la clave de la API. Ponla en el archivo config-ia.js o en Ajustes.");return}
+  txt.value="";hist.push({role:"user",content:t});burbuja("ia-yo",t);
+  const b=burbuja("ia-ia","…");go.disabled=true;
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":KEY(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:modelo.value,max_tokens:1500,system:sistema(),messages:hist.length>11?hist.slice(-11):hist})
+    });
+    const j=await r.json();
+    if(!r.ok)throw new Error(r.status===401?"La clave no es válida. Revísala o crea una nueva en platform.claude.com.":((j.error&&j.error.message)||"Error de la API"));
+    const out=j.content.filter(x=>x.type==="text").map(x=>x.text).join("\n");
+    b.textContent=out;hist.push({role:"assistant",content:out});
+  }catch(e){
+    b.remove();hist.pop();
+    aviso(e.message==="Failed to fetch"?"No pude conectar. Revisa tu internet.":e.message);
+  }
+  go.disabled=false;txt.focus();log.scrollTop=log.scrollHeight;
+}
+q("iaForm").onsubmit=e=>{e.preventDefault();enviar()};
+txt.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();enviar()}};
+})();
+</script>
+
+</body>
+</html>

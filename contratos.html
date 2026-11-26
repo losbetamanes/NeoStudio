@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Splits y Contratos</title>
+<style>
+/* Cambia estos colores para igualar el look de tus otros sitios */
+:root{--bg:#0a0a0c;--card:#141417;--line:#2b2b31;--txt:#f3efe6;--mut:#9b978d;--acc:#d9a441;--bad:#ff6b6b;--ok:#6bd38a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 "Helvetica Neue",Arial,sans-serif;padding:40px 16px 80px}
+main{max-width:920px;margin:auto}
+h1{font-size:clamp(2.6rem,9vw,5.5rem);line-height:.92;margin:0 0 10px;font-weight:800;letter-spacing:-.04em}
+h1 span{display:block;font-size:.32em;font-weight:400;letter-spacing:0;color:var(--acc);margin-bottom:8px}
+.s{color:var(--mut);margin:0 0 32px;max-width:52ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+h2{font-size:1.05rem;margin:0 0 14px;font-weight:700}
+h2 i{font-style:normal;color:var(--acc);margin-right:8px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label{font-size:.82rem;color:var(--mut)}
+input,select,textarea{width:100%;margin-top:4px;padding:10px 12px;background:#0e0e11;border:1px solid var(--line);border-radius:8px;color:var(--txt);font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
+.tabs{display:flex;gap:10px;flex-wrap:wrap}.tabs button{flex:1;min-width:170px}
+button{background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:12px 16px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.on,button.p{background:var(--acc);color:#14110a;border-color:var(--acc);font-weight:700}
+.pr{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;position:relative}
+.x{position:absolute;right:8px;top:8px;padding:0 9px;line-height:26px}
+.pr .g{padding-right:24px}
+#tot{margin:10px 0;color:var(--mut);font-size:.9rem}b.bad{color:var(--bad)}b.ok{color:var(--ok)}
+.hide{display:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.82rem;color:var(--mut);margin-top:12px}
+.sg{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;position:relative}.sg .g{padding-right:24px}
+#calc{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.9rem}
+#calc div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+#calc .t{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700;color:var(--acc)}
+#calc small{color:var(--mut)}
+#logoBox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+#logoBox input{width:auto}#logoPrev{max-height:44px;max-width:140px;background:#fff;border-radius:6px;padding:4px}
+</style></head><body><main>
+<h1><span>Acuerdos musicales</span>Splits y contratos</h1>
+<p class="s">Llena los datos, revisa los porcentajes y descarga un PDF listo para firmar.</p>
+
+<section class="card"><h2><i>1</i>Tipo de documento</h2><div class="tabs" id="tabs"></div></section>
+
+<section class="card"><h2><i>2</i>Datos del documento</h2>
+<div class="g">
+<label id="wt"><span id="lt">Título de la obra o canción</span><input id="titulo"></label>
+<label>Ciudad<input id="ciudad" value="Cali"></label>
+<label><span id="lf">Fecha de inicio</span><input id="fecha" type="date"></label>
+<label id="wc">Código ISRC / ISWC (opcional)<input id="codigo"></label>
+</div>
+<div class="g" id="extra" style="margin-top:12px"></div>
+<div id="songs" class="hide" style="margin-top:12px"><div id="songList"></div><button onclick="addS()">+ Agregar otra canción</button><p class="note">Todas las canciones de la lista comparten los mismos porcentajes y se incluyen en un solo documento.</p></div>
+<div id="calc" class="hide"></div></section>
+
+<section class="card"><h2><i>3</i>Personas que intervienen</h2>
+<div id="people"></div>
+<div id="tot"></div>
+<button id="addBtn" onclick="addP()">+ Agregar persona</button></section>
+
+<section class="card"><h2><i>4</i>Generar</h2>
+<div id="logoBox"><label style="margin:0">Logo en los documentos (opcional)<input id="logoIn" type="file" accept="image/*"></label><img id="logoPrev" class="hide" alt="Logo"><button id="logoX" class="hide" onclick="quitarLogo()">Quitar logo</button></div>
+<div class="row"><button class="p" onclick="pdf()">Descargar PDF</button><button onclick="borrarGuardado()">Borrar datos guardados</button></div>
+<p class="note">Texto base de referencia. Antes de firmar, conviene que un abogado de derecho de autor lo revise para tu caso. En cuentas de cobro y recibos, las retenciones son de referencia (UVT 2026: $52.374): confírmalas con tu contador. Los datos del último documento se guardan solo en este navegador, para que no tengas que escribirlos otra vez.</p></section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const $=i=>document.getElementById(i);
+const TY={
+split:{n:'Split de grabación',t:'ACUERDO DE PARTICIPACIONES (SPLIT SHEET)',pc:3,
+ roles:['Autor / compositor','Letrista','Artista intérprete','Productor musical','Productor fonográfico','Otro'],ex:[]},
+servicio:{n:'Contrato de servicio',t:'',pc:0,roles:[],ex:[]},
+interp:{n:'Contrato de interpretación (ACINPRO)',t:'CONTRATO DE INTERPRETACIÓN ARTÍSTICA',pc:2,
+ roles:['Artista intérprete principal','Artista invitado','Productor fonográfico'],
+ ex:[['estudio','Estudio o lugar de grabación'],['remu','Remuneración pactada']]},
+cuenta:{n:'Cuenta de cobro',t:'CUENTA DE COBRO',lt:'Concepto o servicio prestado',lf:'Fecha de emisión',pc:0,fin:1,roles:['Quien cobra (prestador)','Cliente (a quien se cobra)'],ex:[]},
+recibo:{n:'Recibo de pago',t:'RECIBO DE PAGO',lt:'Concepto o servicio pagado',lf:'Fecha de pago',pc:0,fin:1,roles:['Quien recibe el pago','Cliente (quien paga)'],ex:[]}
+};
+const SUB={
+show:{n:'Show en vivo',t:'CONTRATO DE PRESTACIÓN DE SERVICIOS ARTÍSTICOS (SHOW EN VIVO)',lt:'Nombre del evento',roles:['Contratante','Artista contratado'],
+ ex:[['lugar','Lugar del show (nombre y dirección)'],['fshow','Fecha del show','date'],['hora','Hora de inicio','time'],['dur','Duración del show (minutos)','number'],['formato','Formato (agrupación y n.º de músicos)'],['valor','Valor total (COP)'],['anticipo','Anticipo (COP)'],['saldo','Pago del saldo (cuándo y cómo)'],
+ ['sonido','Sonido, luces y tarima','sel',['El CONTRATANTE suministra sonido, luces y tarima.','El ARTISTA suministra sonido, luces y tarima.']],
+ ['logi','Transporte, alimentación y hospedaje','sel',['Están a cargo del CONTRATANTE, además del valor total.','Están incluidos en el valor total y a cargo del ARTISTA.']],
+ ['grab','Grabación y transmisión','sel',['Se permite con fines promocionales.','No se permite sin autorización escrita del ARTISTA.']],
+ ['pen','Penalidad por cancelación (% del valor)','number']]},
+gen:{n:'Producción o servicio musical (general)',t:'CONTRATO DE PRESTACIÓN DE SERVICIOS MUSICALES',lt:'Título de la obra o canción',roles:['Contratante','Contratista'],
+ ex:[['obj','Servicio a prestar'],['valor','Valor total (COP)'],['pago','Forma de pago'],['plazo','Fecha de entrega','date'],
+ ['prop','Derechos de lo creado','sel',['El CONTRATISTA cede al CONTRATANTE los derechos patrimoniales sobre lo creado.','El CONTRATISTA conserva sus derechos y otorga al CONTRATANTE licencia de uso.']]]}
+};
+let sub='show';
+const EX=k=>({lt:'Título de la obra o canción',...(k=='servicio'?SUB[sub]:TY[k])});
+let tipo='split';
+const ORD=['PRIMERA','SEGUNDA','TERCERA','CUARTA','QUINTA','SEXTA','SÉPTIMA','OCTAVA','NOVENA','DÉCIMA'];
+
+function sel(k){tipo=k;
+ $('tabs').innerHTML=Object.entries(TY).map(([k2,v])=>`<button class="${k2==tipo?'on':''}" onclick="sel('${k2}')">${v.n}</button>`).join('');
+ $('lt').textContent=EX(k).lt;$('extra').innerHTML=(k=='servicio'?`<label>Tipo de servicio<select onchange="sub=this.value;sel('servicio')">${Object.entries(SUB).map(([a,b])=>`<option value="${a}"${a==sub?' selected':''}>${b.n}</option>`).join('')}</select></label>`:'')+EX(k).ex.map(e=>`<label>${e[1]}`+(e[2]=='sel'?`<select id="x_${e[0]}">${e[3].map(o=>`<option>${o}</option>`).join('')}</select>`:`<input id="x_${e[0]}" type="${e[2]||'text'}">`)+'</label>').join('');
+ document.querySelectorAll('.r').forEach(roles);
+ document.querySelectorAll('.pa').forEach(e=>e.classList.toggle('hide',!(TY[k].pc&1)));
+ document.querySelectorAll('.pf').forEach(e=>e.classList.toggle('hide',!(TY[k].pc&2)));
+ vis(k);tot()}
+function roles(s){const v=s.value,R=EX(tipo).roles;s.innerHTML=R.map(r=>`<option>${r}</option>`).join('');if(R.includes(v))s.value=v}
+function addP(){const d=document.createElement('div');d.className='pr';
+ d.innerHTML=`<button class="x" onclick="this.parentNode.remove();tot()" aria-label="Quitar">×</button><div class="g">
+<label>Nombre completo<input class="n"></label><label>Cédula o NIT<input class="c"></label>
+<label>Correo electrónico<input class="e" type="email"></label><label>Teléfono<input class="t" type="tel"></label>
+<label>Rol<select class="r"></select></label>
+<label class="pa">% Autoría (música y letra)<input class="a" type="number" min="0" max="100" step="0.01" oninput="tot()"></label>
+<label class="pf">% Fonograma (grabación)<input class="f" type="number" min="0" max="100" step="0.01" oninput="tot()"></label></div>`;
+ $('people').appendChild(d);roles(d.querySelector('.r'));vp()}
+function sum(c){return [...document.querySelectorAll('.'+c)].reduce((s,e)=>s+(parseFloat(e.value)||0),0)}
+function tot(){const p=TY[tipo].pc,o=[];
+ const f=(l,v)=>`${l}: <b class="${Math.abs(v-100)<.005?'ok':'bad'}">${+v.toFixed(2)}%</b> de 100%`;
+ if(p&1)o.push(f('Autoría',sum('a')));if(p&2)o.push(f('Fonograma',sum('f')));
+ $('tot').innerHTML=o.join(' &nbsp;·&nbsp; ')}
+
+function vp(){document.querySelectorAll('.r').forEach(roles);document.querySelectorAll('.pa').forEach(e=>e.classList.toggle('hide',!(TY[tipo].pc&1)));document.querySelectorAll('.pf').forEach(e=>e.classList.toggle('hide',!(TY[tipo].pc&2)));tot()}
+function vis(k){const f=!!TY[k].fin,sp=k=='split';
+ $('lf').textContent=TY[k].lf||'Fecha de inicio';
+ $('wt').classList.toggle('hide',sp);$('wc').classList.toggle('hide',f||sp);
+ $('songs').classList.toggle('hide',!sp);$('calc').classList.toggle('hide',!f);$('addBtn').classList.toggle('hide',f);
+ if(f)$('extra').innerHTML=finHTML();
+ if(sp&&!document.querySelector('.sg'))addS();
+ aplicar();if(f)calc()}
+/* ===== Memoria del último documento (se guarda en este navegador) ===== */
+const KEYD=()=>tipo=='servicio'?'servicio_'+sub:tipo;
+function aplicar(){const D=(ST&&ST.ex&&ST.ex[KEYD()])||{};
+ Object.entries(D).forEach(([id,v])=>{const e=$(id);if(!e)return;if((id=='titulo'||id=='codigo')&&e.value)return;e.value=v})}
+function guardarUltimo(){try{
+ const ex=(ST&&ST.ex)||{},o={};
+ ['titulo','codigo'].forEach(id=>o[id]=$(id).value);
+ document.querySelectorAll('[id^="x_"]').forEach(e=>o[e.id]=e.value);
+ ex[KEYD()]=o;
+ ST={tipo,sub,ciudad:$('ciudad').value,ex,
+  people:[...document.querySelectorAll('.pr')].map(r=>{const q=c=>r.querySelector('.'+c).value;return{n:q('n'),c:q('c'),e:q('e'),t:q('t'),r:q('r'),a:q('a'),f:q('f')}}),
+  songs:[...document.querySelectorAll('.sg')].map(r=>({t:r.querySelector('.sn').value,c:r.querySelector('.sc').value}))};
+ localStorage.setItem('doc_ultimo',JSON.stringify(ST))}catch(e){}}
+function borrarGuardado(){if(!confirm('¿Borrar los datos guardados del último documento? El logo no se borra.'))return;try{localStorage.removeItem('doc_ultimo')}catch(e){}location.reload()}
+function addS(){const d=document.createElement('div');d.className='sg';
+ d.innerHTML=`<button class="x" onclick="if(document.querySelectorAll('.sg').length>1)this.parentNode.remove()" aria-label="Quitar">×</button><div class="g"><label>Título de la canción<input class="sn"></label><label>Código ISRC / ISWC (opcional)<input class="sc"></label></div>`;
+ $('songList').appendChild(d)}
+
+/* ===== Cuentas de cobro y recibos: liquidación con retenciones (tarifas de referencia 2026) ===== */
+const RF=[['0','No aplica',0],['10','Honorarios o comisiones, persona natural (10%)',0],['11','Honorarios o comisiones, persona jurídica o contratos de más de 3.300 UVT (11%)',0],['4','Servicios generales, declarante de renta (4%)',2],['6','Servicios generales, no declarante de renta (6%)',2]];
+const COP=v=>'$ '+Math.round(v).toLocaleString('es-CO');
+function finHTML(){return `<label>Número de documento<input id="x_num" placeholder="Ej: 001"></label>
+<label>Valor del servicio antes de impuestos (COP)<input id="x_base" type="number" min="0" oninput="calc()"></label>
+<label>IVA<select id="x_iva" onchange="calc()"><option value="0">No cobro IVA</option><option value="1">Cobro IVA</option></select></label>
+<label>% IVA<input id="x_ivap" type="number" value="19" step="0.01" oninput="calc()"></label>
+<label>Retención en la fuente<select id="x_rf" onchange="$('x_rfp').value=this.value;calc()">${RF.map(r=>`<option value="${r[0]}" data-m="${r[2]}"${r[0]=='10'?' selected':''}>${r[1]}</option>`).join('')}</select></label>
+<label>% Retención en la fuente (editable)<input id="x_rfp" type="number" value="10" step="0.01" oninput="calc()"></label>
+<label>Valor de la UVT (COP)<input id="x_uvt" type="number" value="52374" oninput="calc()"></label>
+<label>ReteIVA<select id="x_riv" onchange="calc()"><option value="0">No aplica</option><option value="1">Aplica (15% del IVA)</option></select></label>
+<label>ReteICA (por mil, según tu municipio)<input id="x_rica" type="number" value="0" step="0.01" oninput="calc()"></label>
+<label>Medio de pago o cuenta para recibirlo<input id="x_pago"></label>`}
+function liq(){const n=i=>parseFloat($(i).value)||0,b=n('x_base'),iva=$('x_iva').value=='1'?b*n('x_ivap')/100:0,
+ min=(+$('x_rf').selectedOptions[0].dataset.m||0)*n('x_uvt'),rf=b>0&&b>=min?b*n('x_rfp')/100:0,
+ riv=$('x_riv').value=='1'?iva*.15:0,rica=b*n('x_rica')/1000;
+ return{b,iva,rf,riv,rica,min,ivap:n('x_ivap'),rfp:n('x_rfp'),rica_m:n('x_rica'),sinBase:n('x_rfp')>0&&b>0&&b<min,total:b+iva-rf-riv-rica}}
+function calc(){const L=liq(),d=(a,v)=>`<div><span>${a}</span><span>${COP(v)}</span></div>`;
+ $('calc').innerHTML=d('Valor del servicio',L.b)+(L.iva?d(`IVA (${L.ivap}%)`,L.iva):'')+(L.rf?d(`(-) Retención en la fuente (${L.rfp}%)`,L.rf):'')
+ +(L.sinBase?`<div><small>La retención no aplica: el valor es menor a la base mínima (${COP(L.min)}).</small></div>`:'')
+ +(L.riv?d('(-) ReteIVA (15% del IVA)',L.riv):'')+(L.rica?d(`(-) ReteICA (${L.rica_m} por mil)`,L.rica):'')
+ +`<div class="t"><span>Total</span><span>${COP(L.total)}</span></div>`}
+function enLetras(n){n=Math.round(n);if(!n)return'cero';
+ const U=['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'],
+ D=['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'],
+ C=['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+ const h=x=>{if(x==100)return'cien';const c=Math.floor(x/100),r=x%100;let t=c?C[c]+(r?' ':''):'';t+=r<30?U[r]:D[Math.floor(r/10)]+(r%10?' y '+U[r%10]:'');return t};
+ const m=Math.floor(n/1e6),k=Math.floor(n%1e6/1e3),u=n%1e3;let t='';
+ if(m)t+=(m==1?'un millón':h(m).replace(/veintiuno$/,'veintiún').replace(/uno$/,'un')+' millones')+' ';
+ if(k)t+=(k==1?'mil':h(k).replace(/veintiuno$/,'veintiún').replace(/uno$/,'un')+' mil')+' ';
+ if(u)t+=h(u);
+ return t.trim()+(n%1e6==0?' de':'')}
+const LT=n=>enLetras(n).toUpperCase().replace(/UNO$/,'UN')+' PESOS M/CTE';
+
+/* ===== Logo opcional ===== */
+let LOGO=null;
+function setLogo(d){const i=new Image();i.onload=()=>{const r=Math.min(1,600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+ LOGO={d:c.toDataURL('image/png'),w:c.width,h:c.height};try{localStorage.setItem('doc_logo',LOGO.d)}catch(e){}
+ $('logoPrev').src=LOGO.d;$('logoPrev').classList.remove('hide');$('logoX').classList.remove('hide')};
+ i.onerror=()=>alert('No pude leer esa imagen. Prueba con un PNG o JPG.');i.src=d}
+$('logoIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>setLogo(fr.result);fr.readAsDataURL(f)};
+function quitarLogo(){LOGO=null;try{localStorage.removeItem('doc_logo')}catch(e){}$('logoPrev').classList.add('hide');$('logoX').classList.add('hide');$('logoIn').value=''}
+try{const g=localStorage.getItem('doc_logo');if(g)setLogo(g)}catch(e){}
+
+function fd(v){return v?new Date(v+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):'________'}
+function pdf(){
+ const g=i=>($(i)?$(i).value.trim():''),X=EX(tipo),p=TY[tipo].pc;
+ const P=[...document.querySelectorAll('.pr')].map(r=>{const q=c=>r.querySelector('.'+c).value.trim();
+  return{n:q('n'),c:q('c'),e:q('e'),t:q('t'),r:q('r'),a:parseFloat(q('a'))||0,f:parseFloat(q('f'))||0}});
+ const fin=!!TY[tipo].fin,SG=[...document.querySelectorAll('.sg')].map(r=>({t:r.querySelector('.sn').value.trim(),c:r.querySelector('.sc').value.trim()})).filter(x=>x.t);
+ if(tipo=='split'?!SG.length:!g('titulo'))return alert(tipo=='split'?'Agrega al menos una canción con su título.':'Completa el campo: '+X.lt+'.');
+ if(fin&&!(parseFloat(g('x_base'))>0))return alert('Escribe el valor del servicio.');
+ if(P.length<2||P.some(x=>!x.n||!x.c))return alert('Agrega al menos dos personas, cada una con nombre y cédula.');
+ if((p&1&&Math.abs(sum('a')-100)>.005)||(p&2&&Math.abs(sum('f')-100)>.005))return alert('Cada porcentaje debe sumar exactamente 100%.');
+ const T=tipo=='split'?(SG.length==1?SG[0].t:SG[0].t+' y '+(SG.length-1)+(SG.length==2?' más':' más')):g('titulo'),ci=g('ciudad')||'________',fe=fd(g('fecha')),cod=tipo=='split'?(SG.length==1&&SG[0].c?` (código ${SG[0].c})`:''):(g('codigo')?` (código ${g('codigo')})`:'');
+ let C=[];
+ if(tipo=='split')C=[
+ ['OBJETO',`Las partes declaran haber participado en la creación y/o grabación de ${SG.length>1?'las obras relacionadas en el cuadro «Obras incluidas» (las Obras)':`la obra «${T}»${cod} (la Obra)`} y acuerdan la distribución de sus participaciones según el cuadro anterior.`],
+ ['PARTICIPACIONES','El porcentaje de autoría corresponde a la obra musical (música y letra). El porcentaje de fonograma corresponde a la grabación sonora y a los derechos conexos. Cada columna suma 100%.'+(SG.length>1?' Los mismos porcentajes se aplican a todas las Obras incluidas.':'')],
+ ['DERECHOS','Los derechos morales son inalienables e irrenunciables. Los derechos patrimoniales de autor y los derechos conexos se rigen por la Ley 23 de 1982, la Ley 44 de 1993 y la Decisión Andina 351 de 1993.'],
+ ['INGRESOS','Los ingresos netos de la explotación de la Obra se distribuirán según los porcentajes pactados. Cada parte podrá registrar su participación ante su sociedad de gestión colectiva (SAYCO para autores y compositores; ACINPRO para intérpretes y productores fonográficos), y este documento servirá de soporte.'],
+ ['REGISTRO','Las partes podrán inscribir este acuerdo y las Obras ante la Dirección Nacional de Derecho de Autor y ante sus sociedades de gestión colectiva.'],
+['MODIFICACIONES','Cualquier cambio requiere acuerdo escrito firmado por todas las partes.']];
+ if(tipo=='servicio'&&sub=='show')C=[
+ ['OBJETO',`El ARTISTA se obliga a presentar un show en vivo en el evento «${T}», con el siguiente formato: ${g('x_formato')||'________'}, en ${g('x_lugar')||'________'}, el ${fd(g('x_fshow'))} a las ${g('x_hora')||'____'}, con una duración de ${g('x_dur')||'___'} minutos.`],
+ ['VALOR Y PAGO',`El valor total es de $${g('x_valor')||'________'} COP. El CONTRATANTE pagará un anticipo de $${g('x_anticipo')||'________'} COP para reservar la fecha, y el saldo así: ${g('x_saldo')||'________'}.`],
+ ['REQUERIMIENTOS TÉCNICOS Y LOGÍSTICA',`${g('x_sonido')} ${g('x_logi')} El CONTRATANTE garantizará un espacio seguro, acceso para el montaje y una prueba de sonido previa.`],
+ ['DERECHOS DE AUTOR Y CONEXOS','El CONTRATANTE es responsable de obtener las licencias y pagar los derechos de comunicación pública de la música ante las sociedades de gestión colectiva (SAYCO y ACINPRO), así como los permisos del evento.'],
+ ['GRABACIÓN Y TRANSMISIÓN',`${g('x_grab')} Los derechos morales del ARTISTA son inalienables.`],
+ ['CANCELACIÓN',`Si el CONTRATANTE cancela, el anticipo no será reembolsable y deberá pagar, a título de cláusula penal, el ${g('x_pen')||'___'}% del valor total. Si el ARTISTA cancela sin causa justificada, devolverá el anticipo. La cláusula penal se rige por los artículos 1592 y siguientes del Código Civil.`],
+ ['FUERZA MAYOR','Ninguna parte responde por incumplimientos causados por fuerza mayor o caso fortuito; las partes reprogramarán el show de común acuerdo.'],
+ ['INDEPENDENCIA','El ARTISTA actúa con plena autonomía; este contrato no genera relación laboral.'],
+['IMPUESTOS Y SEGURIDAD SOCIAL','Los valores pactados se entienden antes de IVA, si este aplica. El CONTRATANTE practicará las retenciones de ley y entregará los certificados correspondientes. El ARTISTA, como trabajador independiente, responde por sus aportes al Sistema de Seguridad Social Integral conforme a la ley.']];
+ if(tipo=='servicio'&&sub=='gen')C=[
+ ['OBJETO',`El CONTRATISTA prestará al CONTRATANTE el siguiente servicio relacionado con la obra «${T}»${cod}: ${g('x_obj')||'________'}.`],
+ ['VALOR Y PAGO',`El valor total es de $${g('x_valor')||'________'} COP, pagadero así: ${g('x_pago')||'________'}.`],
+ ['PLAZO',`El servicio se entregará a más tardar el ${fd(g('x_plazo'))}.`],
+ ['PROPIEDAD INTELECTUAL',`Los derechos morales son inalienables. ${g('x_prop')} La cesión de derechos patrimoniales debe constar por escrito (art. 183 de la Ley 23 de 1982); se recomienda su reconocimiento ante notario y su inscripción en la Dirección Nacional de Derecho de Autor. Todo conforme a la Ley 23 de 1982 y la Decisión Andina 351 de 1993.`],
+ ['INDEPENDENCIA','El CONTRATISTA actúa con plena autonomía; este contrato no genera relación laboral.'],
+['IMPUESTOS Y SEGURIDAD SOCIAL','Los valores pactados se entienden antes de IVA, si este aplica. El CONTRATANTE practicará las retenciones de ley y entregará los certificados correspondientes. El CONTRATISTA, como trabajador independiente, responde por sus aportes al Sistema de Seguridad Social Integral conforme a la ley.'],
+ ['CONFIDENCIALIDAD','Las partes guardarán reserva sobre la información no pública a la que accedan.'],
+ ['TERMINACIÓN','Cualquiera de las partes puede terminar el contrato por incumplimiento de la otra, previo aviso escrito.']];
+ if(tipo=='interp')C=[
+ ['OBJETO',`El artista interpreta o ejecuta su aporte en el fonograma «${T}»${cod}, producido por el productor fonográfico. Grabación realizada en: ${g('x_estudio')||'________'}.`],
+ ['AUTORIZACIÓN','El artista autoriza la fijación, reproducción y distribución de su interpretación en dicho fonograma para su explotación comercial.'],
+ ['DERECHOS CONEXOS','El artista conserva sus derechos morales y el derecho a ser identificado como intérprete. Conserva también la remuneración por comunicación pública y demás derechos conexos que le correspondan, que podrá gestionar a través de ACINPRO (Ley 23 de 1982, Ley 44 de 1993, Decisión Andina 351 de 1993).'],
+ ['REMUNERACIÓN',`La remuneración pactada es: ${g('x_remu')||'________'}. La participación de cada parte en el fonograma es la indicada en el cuadro.`],
+ ['REGISTRO','Las partes reconocen que este documento acredita la participación del artista en el fonograma y podrá presentarse ante ACINPRO y otras entidades para su registro.'],
+ ['CRÉDITOS','El nombre del artista figurará en los créditos del fonograma.']];
+ if(!fin)C.push(['FIRMA ELECTRÓNICA','Las partes podrán firmar este documento de forma física o electrónica, con plena validez conforme a la Ley 527 de 1999.'],['DATOS PERSONALES','Las partes autorizan el tratamiento de sus datos personales para los fines de este documento, conforme a la Ley 1581 de 2012.'],
+ ['LEY Y CONTROVERSIAS',`Se rige por las leyes de Colombia. Las diferencias se buscarán resolver directamente y, en su defecto, mediante conciliación antes de acudir a la justicia ordinaria en ${ci}.`],
+ ['VIGENCIA',`Rige desde el ${fe}.`]);
+
+ const doc=new jspdf.jsPDF({unit:'mm',format:'letter'});let y=0;
+ const GOLD=[217,164,65],INK=[24,24,28],GR=[95,95,104];
+ const col=c=>doc.setTextColor(c[0],c[1],c[2]);
+ const bar=()=>{doc.setFillColor(...GOLD);doc.rect(0,0,216,4,'F')};
+ const chk=h=>{if(y+h>262){doc.addPage();bar();y=24}};
+ const w=(t,sz=10,b=0,c=INK,gap=2,mw=175)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(sz);col(c);
+  doc.splitTextToSize(t,mw).forEach(l=>{chk(7);doc.text(l,20,y);y+=sz*.5+.6});y+=gap};
+ const h2=t=>{chk(22);y+=4;doc.setFillColor(...GOLD);doc.rect(20,y-4.2,1.6,6,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(11);col(INK);doc.text(t,24,y);y+=7};
+ bar();y=27;
+ if(LOGO){const bw=45,bh=18,r=Math.min(bw/LOGO.w,bh/LOGO.h),lw=LOGO.w*r,lh=LOGO.h*r;doc.addImage(LOGO.d,'PNG',195-lw,10+(bh-lh)/2,lw,lh)}
+ w(X.t+(fin&&g('x_num')?' N.º '+g('x_num'):''),16,1,INK,1,LOGO?125:175);
+ doc.setDrawColor(...GOLD);doc.setLineWidth(.8);doc.line(20,y,60,y);y+=8;
+ doc.setDrawColor(215,215,220);doc.setLineWidth(.2);doc.roundedRect(20,y,175,17,2,2);
+ [[fin?'Concepto':tipo=='servicio'&&sub=='show'?'Evento':'Obra',T,24,78],['Ciudad',ci,106,36],['Fecha',fe,146,48]].forEach(c=>{
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);col(GR);doc.text(c[0],c[2],y+6);
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);col(INK);doc.text(doc.splitTextToSize(c[1],c[3])[0],c[2],y+12.5)});
+ y+=17;
+ if(tipo=='split'&&SG.length>1){h2('Obras incluidas');SG.forEach((x,i)=>w(`${i+1}. ${x.t}${x.c?'  ·  '+x.c:''}`,9.5,0,INK,.5));y+=3}
+ h2(p?'Partes y participaciones':'Partes');
+ const cols=[['Nombre',p==3?40:p?46:55,x=>x.n],['Cédula / NIT',p==3?25:p?26:30,x=>x.c],['Rol',p==3?28:p?30:40,x=>x.r],['Contacto',p==3?42:p?48:50,x=>[x.e,x.t].filter(Boolean).join('\n')]];
+ if(p&1)cols.push(['% Autoría',p==3?20:25,x=>x.a+'%']);
+ if(p&2)cols.push(['% Fonograma',p==3?20:25,x=>x.f+'%']);
+ const row=(vals,hd,i)=>{doc.setFont('helvetica',hd?'bold':'normal');doc.setFontSize(hd?8:8.5);
+  const L=vals.map((v,j)=>doc.splitTextToSize(String(v),cols[j][1]-4));
+  const h=Math.max(...L.map(a=>a.length))*4+4;chk(h);let x=20;
+  cols.forEach((c,j)=>{if(hd){doc.setFillColor(...GOLD);doc.rect(x,y,c[1],h,'F')}else if(i%2){doc.setFillColor(246,246,248);doc.rect(x,y,c[1],h,'F')}
+   doc.setDrawColor(215,215,220);doc.setLineWidth(.2);doc.rect(x,y,c[1],h);
+   doc.setFont('helvetica',hd?'bold':'normal');doc.setFontSize(hd?8:8.5);col(INK);
+   L[j].forEach((l,k)=>doc.text(l,x+2,y+5+k*4));x+=c[1]});y+=h};
+ row(cols.map(c=>c[0]),1);P.forEach((x,i)=>row(cols.map(c=>c[2](x)),0,i));
+ if(p)w(p==3?'Cada columna de porcentaje suma 100%.':'La columna de porcentaje suma 100%.',8,0,GR,0);
+ if(fin){const Q=liq(),pe=P[0],cl=P[1],ver=tipo=='cuenta';
+  h2(ver?'Cuenta de cobro':'Recibo de pago');
+  w(ver?`${cl.n} (C.C./NIT ${cl.c}) debe a ${pe.n} (C.C./NIT ${pe.c}) la suma de ${LT(Q.total)} (${COP(Q.total)}), por concepto de: ${T}.`:`Recibí de ${cl.n} (C.C./NIT ${cl.c}) la suma de ${LT(Q.total)} (${COP(Q.total)}), por concepto de: ${T}${g('x_pago')?', mediante '+g('x_pago'):''}.`,10,0,GR,4);
+  h2('Liquidación');
+  const LR=[['Valor del servicio',Q.b]];if(Q.iva)LR.push([`IVA (${Q.ivap}%)`,Q.iva]);if(Q.rf)LR.push([`(-) Retención en la fuente (${Q.rfp}%)`,-Q.rf]);if(Q.riv)LR.push(['(-) ReteIVA (15% del IVA)',-Q.riv]);if(Q.rica)LR.push([`(-) ReteICA (${Q.rica_m} por mil)`,-Q.rica]);
+  LR.forEach((r,i)=>{chk(9);if(i%2){doc.setFillColor(246,246,248);doc.rect(20,y-4.5,175,7,'F')}doc.setFont('helvetica','normal');doc.setFontSize(9.5);col(INK);doc.text(r[0],22,y);doc.text((r[1]<0?'- ':'')+COP(Math.abs(r[1])),193,y,{align:'right'});y+=7});
+  chk(14);doc.setFillColor(...GOLD);doc.rect(20,y-4.5,175,8,'F');doc.setFont('helvetica','bold');doc.setFontSize(10.5);col(INK);doc.text(ver?'TOTAL A PAGAR':'TOTAL RECIBIDO',22,y+.8);doc.text(COP(Q.total),193,y+.8,{align:'right'});y+=12;
+  if(Q.sinBase)w(`La retención en la fuente no se aplicó porque el valor es menor a la base mínima (${COP(Q.min)}).`,8,0,GR,2);
+  w(ver?(g('x_pago')?`Forma de pago: ${g('x_pago')}. `:'')+'Quien cobra declara no estar obligado a expedir factura de venta; esta cuenta de cobro sirve como soporte de la operación. Las retenciones aquí calculadas son de referencia: las practica el pagador según la ley vigente.':'Este recibo acredita el pago del servicio descrito. Las retenciones aquí calculadas son de referencia y se practican según la ley vigente.',8.5,0,GR,6);
+ }else{h2('Cláusulas');
+ C.forEach((c,i)=>{chk(24);w(`${ORD[i]}  ·  ${c[0]}`,9.5,1,INK,.5);w(c[1],10,0,GR,4)})}
+ h2('Firmas');
+ w(fin?`Emitido en ${ci}, el ${fe}.`:`En constancia, las partes firman en ${ci}, a ____ de ____________ de 20____.`,9.5,0,GR,6);
+ let ry=y;
+ const SP=fin?[P[0]]:P;SP.forEach((x,i)=>{const cx=i%2?115:20;if(i%2==0){chk(32);ry=y}
+  doc.setDrawColor(...INK);doc.setLineWidth(.3);doc.line(cx,ry+16,cx+75,ry+16);
+  doc.setFont('helvetica','bold');doc.setFontSize(9);col(INK);doc.text(doc.splitTextToSize(x.n,75)[0],cx,ry+21);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);col(GR);doc.text(doc.splitTextToSize(`C.C./NIT ${x.c} · ${x.r}`,75)[0],cx,ry+25.5);
+  if(i%2||i==SP.length-1)y=ry+32});
+ const n=doc.getNumberOfPages();
+ for(let i=1;i<=n;i++){doc.setPage(i);doc.setDrawColor(215,215,220);doc.setLineWidth(.2);doc.line(20,268,195,268);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);col(GR);
+  doc.text(doc.splitTextToSize(`${X.n} · ${T}`,130)[0],20,273);doc.text(`Página ${i} de ${n}`,195,273,{align:'right'})}
+ guardarUltimo();doc.save(`${tipo}-${T.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-')}.pdf`)}
+
+let ST=null;try{ST=JSON.parse(localStorage.getItem('doc_ultimo')||'null')}catch(e){}
+if(ST&&SUB[ST.sub])sub=ST.sub;
+sel(ST&&TY[ST.tipo]?ST.tipo:'split');
+if(ST){if(ST.ciudad)$('ciudad').value=ST.ciudad;
+ if(ST.songs&&ST.songs.length){$('songList').innerHTML='';ST.songs.forEach(x=>{addS();const r=[...document.querySelectorAll('.sg')].pop();r.querySelector('.sn').value=x.t||'';r.querySelector('.sc').value=x.c||''})}}
+(ST&&ST.people&&ST.people.length?ST.people:[{},{}]).forEach(x=>{addP();const r=[...document.querySelectorAll('.pr')].pop();
+ ['n','c','e','t','a','f'].forEach(c=>{if(x[c]!==undefined)r.querySelector('.'+c).value=x[c]});
+ const sl=r.querySelector('.r');if(x.r&&[...sl.options].some(o=>o.value==x.r))sl.value=x.r});
+tot();
+if(!$('fecha').value){const d=new Date();$('fecha').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+</script></body></html>

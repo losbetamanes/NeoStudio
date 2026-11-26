@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acortador</title>
+<style>
+:root{--bg:#0a0a0c;--card:#141417;--line:#2b2b31;--txt:#f3efe6;--mut:#9b978d;--acc:#d9a441;--bad:#ff6b6b;--ok:#6bd38a;--in:#0e0e11}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 "Helvetica Neue",Arial,sans-serif;padding:36px 16px 80px}
+main{max-width:720px;margin:auto}
+h1{font-size:clamp(2.6rem,10vw,4.8rem);line-height:.92;margin:0 0 10px;font-weight:800;letter-spacing:-.04em}
+h1 span{display:block;font-size:.32em;font-weight:400;letter-spacing:0;color:var(--acc);margin-bottom:8px}
+.s{color:var(--mut);margin:0 0 22px;max-width:52ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+h2{font-size:1.05rem;margin:0 0 6px;font-weight:700}h2 i{font-style:normal;color:var(--acc);margin-right:8px}
+label{display:block;font-size:.82rem;color:var(--mut);margin-top:12px}
+input{width:100%;margin-top:4px;padding:10px 12px;background:var(--in);border:1px solid var(--line);border-radius:8px;color:var(--txt);font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
+button,a.btn{display:inline-block;text-align:center;text-decoration:none;background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer}
+button:hover,a.btn:hover{border-color:var(--acc)}
+.p{background:var(--acc)!important;color:#14110a!important;border-color:var(--acc)!important;font-weight:700}
+.w{width:100%;margin-top:14px}
+.pg{color:var(--acc);font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.sh{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem}
+.n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#14110a;display:grid;place-items:center;font-size:.9rem}
+.q{flex:none;width:22px;height:22px;border-radius:50%;padding:0;font-size:.75rem;line-height:1;color:var(--acc);border-color:var(--acc);display:inline-grid;place-items:center}
+.d{color:var(--mut);font-size:.92rem;margin:8px 0 14px}
+.sm{color:var(--mut);font-size:.8rem;margin:12px 0 0;display:flex;gap:8px;align-items:flex-start}
+.sm .q{margin-top:1px}
+.lk{background:none;border:0;color:var(--mut);font-size:.82rem;text-decoration:underline;padding:10px 0 0;display:block}
+.lq{display:flex;align-items:center;gap:8px}
+.res{margin-top:14px}.big{color:var(--acc);font-weight:700;font-size:1.15rem;word-break:break-all}
+.it{border-top:1px solid var(--line);padding:12px 0}.it:first-child{border:0}
+.dst{color:var(--mut);font-size:.82rem;word-break:break-all}
+.row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+#msg,#cm{margin-top:12px;min-height:1.2em;font-size:.9rem}.e{color:var(--bad)}.o{color:var(--ok)}
+.hide{display:none!important}
+#tip{position:fixed;z-index:20;max-width:280px;background:#1d1d22;border:1px solid var(--acc);border-radius:10px;padding:10px 12px;font-size:.84rem;line-height:1.45;white-space:pre-line;display:none;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#tip b{display:block;color:var(--acc);margin-bottom:4px}
+</style>
+</head>
+<body>
+<main>
+<h1><span>Acortador de enlaces</span>Enlaces cortos</h1>
+<p class="s">Pega cualquier enlace y obtén uno corto para compartir.</p>
+<button id="cfgt" class="hide" style="margin:-8px 0 18px;padding:7px 12px;font-size:.85rem;color:var(--mut)">⚙ Cambiar configuración</button>
+
+<!-- GUÍA: un paso a la vez -->
+<section class="card hide" id="cfg">
+<div class="pg" id="pg"></div>
+
+<div id="s1" class="hide">
+<div class="sh"><span class="n">1</span>Crea tu cuenta gratis<button class="q" data-h="cuenta" aria-label="Ayuda">?</button></div>
+<div class="d">Se hace en Short.io, el servicio que crea los enlaces cortos.</div>
+<a id="b1" class="btn p" href="https://app.short.io/public/register" target="_blank" rel="noopener">Crear cuenta en Short.io</a>
+<div class="sm"><button class="q" data-h="dominio" aria-label="Ayuda">?</button><span>Cuando termines, anota tu dominio: es el nombre que aparece al inicio de tus enlaces cortos.</span></div>
+<button class="lk" id="k1">Ya tengo cuenta →</button>
+</div>
+
+<div id="s2" class="hide">
+<div class="sh"><span class="n">2</span>Crea tu clave pública y cópiala<button class="q" data-h="clave" aria-label="Ayuda">?</button></div>
+<div class="d">Es el permiso para que esta página cree enlaces en tu cuenta. Cópiala porque la vas a pegar en el siguiente paso.</div>
+<a id="b2" class="btn p" href="https://app.short.io/settings/integrations/api-key" target="_blank" rel="noopener">Abrir página de claves</a>
+<button class="lk" id="k2">Ya tengo mi clave →</button>
+</div>
+
+<div id="s3" class="hide">
+<div class="sh"><span class="n" id="n3">3</span>Pega tus datos<button class="q" data-h="pegar" aria-label="Ayuda">?</button></div>
+<label>Dominio<input id="dom" placeholder="tuenlace.short.gy" autocapitalize="none"></label>
+<label>Clave pública<input id="key" placeholder="pk_..." autocapitalize="none"></label>
+<button class="p w" id="sc">Guardar y empezar</button>
+<button class="w hide" id="cc">Cancelar</button>
+<div id="cm"></div>
+<div class="row" style="margin-top:14px"><a class="btn" href="https://app.short.io/settings/integrations/api-key" target="_blank" rel="noopener" style="font-size:.88rem;padding:8px 12px">Abrir página de claves</a></div>
+</div>
+</section>
+
+<!-- ACORTAR -->
+<section class="card hide" id="main">
+<h2><i>1</i>Nuevo enlace</h2>
+<label class="lq">Enlace largo <button class="q" data-h="largo" aria-label="Ayuda">?</button></label>
+<input id="u" placeholder="https://..." inputmode="url" autocapitalize="none" style="margin-top:4px">
+<label class="lq">Nombre personalizado (opcional) <button class="q" data-h="nombre" aria-label="Ayuda">?</button></label>
+<input id="a" placeholder="mi-concierto" autocapitalize="none" style="margin-top:4px">
+<button class="p w" id="go">Acortar</button>
+<div class="res" id="res"></div><div id="msg"></div>
+</section>
+
+<section class="card hide" id="hc">
+<h2><i>2</i>Mis enlaces recientes</h2>
+<div id="hist"></div>
+<div class="row"><button id="clr">Borrar historial</button></div>
+</section>
+</main>
+
+<div id="tip"><b id="tt"></b><div id="tb"></div></div>
+
+<script>
+// Opcional: si escribes aquí tu dominio y clave pública, la guía ya no aparece.
+var DOMAIN = "";
+var PUBLIC_KEY = "";
+
+var HELP = {
+  cuenta: ["Short.io", "Es el servicio que crea los enlaces cortos. Crear la cuenta es gratis: usa tu correo, inventa una contraseña y confirma tu correo si te lo pide."],
+  dominio: ["Tu dominio", "Es la primera parte de tus enlaces cortos. En algo.short.gy/mi-concierto, el dominio es algo.short.gy.\nLo ves en tu cuenta de Short.io, en la sección de dominios."],
+  clave: ["Clave pública", "1. Toca \"Create API key\".\n2. En el tipo elige Public.\n3. En el acceso elige All domains o tu dominio.\n4. Toca Create y copia la clave (empieza con pk_).\nUna clave pública solo puede crear enlaces, es segura."],
+  pegar: ["Pegar datos", "Pega el dominio (sin https:// ni barra final) y la clave, sin espacios.\nSi sale \"acceso denegado\", la clave se creó como privada: créala de nuevo y elige Public."],
+  largo: ["Enlace largo", "La dirección que quieres acortar: Spotify, YouTube, WhatsApp, Instagram o cualquier página."],
+  nombre: ["Nombre personalizado", "Opcional. Si lo dejas vacío se crea uno automático. Si escribes mi-concierto, tu enlace será tudominio/mi-concierto."]
+};
+
+var $ = function (i) { return document.getElementById(i); };
+var CK = "acortador-cfg-v2", HK = "acortador-hist-v1", mem = {}, editing = false, step = 1, ret = false;
+function get(k, d) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return mem[k] || d; } }
+function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { mem[k] = v; } }
+var C = get(CK, {}), H = get(HK, []);
+function dom() { return DOMAIN || C.d || ""; }
+function key() { return PUBLIC_KEY || C.k || ""; }
+function el(t, c, x) { var e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = x; return e; }
+function say(id, t, ok) { var m = $(id); m.textContent = t; m.className = ok ? "o" : "e"; }
+
+// Si ya abriste la configuración antes, solo se muestra donde pegar los datos
+function enter() { ret = !!C.seen; step = ret ? 3 : 1; }
+function show() {
+  var ok = !!(dom() && key()), cfg = !ok || editing;
+  $("cfg").className = cfg ? "card" : "card hide";
+  $("main").className = (ok && !editing) ? "card" : "card hide";
+  $("hc").className = (ok && !editing) ? "card" : "card hide";
+  $("cfgt").className = (ok && !editing && !DOMAIN) ? "" : "hide";
+  $("cc").className = (ok && editing) ? "w" : "w hide";
+  for (var i = 1; i <= 3; i++) $("s" + i).className = (i === step) ? "" : "hide";
+  $("pg").className = ret ? "hide" : "pg"; $("pg").textContent = "Paso " + step + " de 3";
+  $("n3").className = ret ? "n hide" : "n";
+  $("dom").value = dom(); $("key").value = key();
+}
+function go(n) { step = n; show(); }
+
+$("b1").onclick = function () { C.seen = true; put(CK, C); go(2); };
+$("k1").onclick = function () { C.seen = true; put(CK, C); go(2); };
+$("b2").onclick = function () { go(3); };
+$("k2").onclick = function () { go(3); };
+$("sc").onclick = function () {
+  var d = $("dom").value.trim().replace(/^https?:\/\//, "").replace(/\/+$/, ""), k = $("key").value.trim();
+  if (!d || !k) { say("cm", "Falta el dominio o la clave.", 0); return; }
+  C = { d: d, k: k, seen: true }; put(CK, C); editing = false; say("cm", "", 1); show(); say("msg", "¡Listo! Ya puedes acortar tu primer enlace.", 1);
+};
+$("cfgt").onclick = function () { editing = true; enter(); show(); scrollTo(0, 0); };
+$("cc").onclick = function () { editing = false; show(); };
+$("clr").onclick = function () { H = []; put(HK, H); draw(); };
+
+// Ayudas que aparecen al pasar el mouse (o al tocar) y desaparecen al salir
+var tipBtn = null;
+function showTip(b) {
+  var h = HELP[b.dataset.h]; tipBtn = b;
+  $("tt").textContent = h[0]; $("tb").textContent = h[1];
+  var t = $("tip"); t.style.display = "block";
+  var r = b.getBoundingClientRect(), w = t.offsetWidth, hh = t.offsetHeight;
+  var left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8));
+  var top = r.bottom + 8; if (top + hh > innerHeight - 8) top = r.top - hh - 8;
+  t.style.left = left + "px"; t.style.top = Math.max(8, top) + "px";
+}
+function hideTip() { $("tip").style.display = "none"; tipBtn = null; }
+document.querySelectorAll("[data-h]").forEach(function (b) {
+  b.onmouseenter = function () { showTip(b); };
+  b.onmouseleave = hideTip;
+  b.onfocus = function () { showTip(b); };
+  b.onblur = hideTip;
+  b.onclick = function (e) { e.stopPropagation(); showTip(b); };
+});
+document.addEventListener("click", hideTip);
+addEventListener("scroll", hideTip, true);
+
+function draw() {
+  var b = $("hist"); b.textContent = "";
+  if (!H.length) { b.appendChild(el("div", "dst", "Aún no has creado enlaces.")); return; }
+  H.forEach(function (x) {
+    var d = el("div", "it"); d.appendChild(el("div", "big", x.s)); d.appendChild(el("div", "dst", "→ " + x.u));
+    var r = el("div", "row"), c = el("button", "", "Copiar");
+    c.onclick = function () { try { navigator.clipboard.writeText(x.s); c.textContent = "Copiado"; } catch (e) { c.textContent = "Copia a mano"; } };
+    r.appendChild(c); d.appendChild(r); b.appendChild(d);
+  });
+}
+
+$("go").onclick = function () {
+  var u = $("u").value.trim(), a = $("a").value.trim();
+  if (!u) { say("msg", "Pega un enlace primero.", 0); return; }
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  var body = { originalURL: u, domain: dom(), allowDuplicates: false };
+  if (a) body.path = a;
+  say("msg", "Creando...", 1); $("res").textContent = "";
+  fetch("https://api.short.io/links/public", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": key() },
+    body: JSON.stringify(body)
+  }).then(function (r) {
+    return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+  }).then(function (x) {
+    if (!x.ok) { say("msg", ((x.d && (x.d.error || x.d.message)) || "Short.io rechazó la solicitud.") + " Si el problema es la clave, toca ⚙ Cambiar configuración.", 0); return; }
+    var s = x.d.secureShortURL || x.d.shortURL;
+    $("msg").textContent = ""; $("res").textContent = "";
+    $("res").appendChild(el("div", "big", s));
+    var c = el("button", "", "Copiar enlace"); c.style.marginTop = "8px";
+    c.onclick = function () { try { navigator.clipboard.writeText(s); c.textContent = "Copiado"; } catch (e) { } };
+    $("res").appendChild(c);
+    H.unshift({ s: s, u: u }); H = H.slice(0, 30); put(HK, H); draw();
+    $("u").value = ""; $("a").value = "";
+  }).catch(function () { say("msg", "No se pudo conectar con Short.io. Revisa tu internet, el dominio y la clave.", 0); });
+};
+enter(); show(); draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+NEOstudio - PRIMEROS PASOS
+1. Descomprime esta carpeta donde quieras (Escritorio o Documentos).
+2. Abre index.html con Chrome (o Safari/Firefox). La primera vez te pide tu nombre.
+3. Tus datos se guardan en el navegador. Usa siempre el mismo navegador y descarga copias de vez en cuando.
+4. Asistente IA (opcional): pega tu clave en config-ia.js.
+5. Artistas: crea una carpeta por artista dentro de "Artistas" con su index.html (puedes crearlo en "Construir Página").
+Calendario: lo que guardas en "Calendario de Conciertos" aparece solo en el calendario del inicio.
+Para añadir apps nuevas, agrega una línea a la lista MODULOS dentro de index.html.

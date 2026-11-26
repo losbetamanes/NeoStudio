@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rutina de escucha</title>
+<style>
+:root{--bg:#F2F3EF;--surface:#FFFFFF;--ink:#18262E;--muted:#68777D;--line:#E0E4DF;--accent:#2D6A86;--accent-soft:#E3EEF3;--warm:#C8923A;--warm-soft:#F7EBD4;--on-accent:#FFFFFF;color-scheme:light dark;--card:var(--surface);--mute:var(--muted);--ok:var(--accent);--okbg:var(--accent-soft)}
+@media (prefers-color-scheme:dark){:root{--bg:#0F191E;--surface:#16232A;--ink:#E8EDEA;--muted:#8FA0A6;--line:#25353D;--accent:#7BBAD6;--accent-soft:#1D3641;--warm:#E0AE5C;--warm-soft:#33291A;--on-accent:#0F191E}}
+
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;padding:0 24px 80px}
+main{max-width:760px;margin:0 auto;padding:56px 0 0}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+h1{margin:0 0 10px;font-size:15px;font-weight:500;color:var(--muted);text-transform:capitalize}
+.big{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:clamp(52px,9vw,84px);line-height:1;letter-spacing:-.02em}
+.big small{font-family:Manrope,system-ui,sans-serif;font-size:18px;color:var(--muted);font-weight:400;letter-spacing:0}
+.streak{text-align:right}
+.streak b{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:44px;color:var(--warm);display:block;line-height:1}
+.streak span,.hint{color:var(--muted);font-size:14px}
+#aviso{margin:0 0 22px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:22px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:14px;transition:border-color .2s,background .2s}
+.card:hover{border-color:var(--accent)}
+.card.done{background:var(--accent-soft);border-color:var(--accent)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.name{font-weight:600;font-size:17px;display:inline-flex;align-items:center;gap:10px}
+.name::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+input[type=url]{flex:1 1 220px;min-width:0;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px}
+input[type=url]:focus{outline:none;border-color:var(--accent)}
+button,a.btn{font:inherit;font-size:14px;font-weight:600;padding:10px 20px;border-radius:99px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer;text-decoration:none;display:inline-block}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+button.ghost:hover{border-color:var(--accent);color:var(--ink)}
+a.btn[aria-disabled=true]{opacity:.35;pointer-events:none}
+label.chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap}
+label.chk input{width:22px;height:22px;accent-color:var(--accent)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.timer{display:flex;align-items:center;gap:14px;margin:28px 0 10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 22px}
+.timer output{font-family:Fraunces,Georgia,serif;font-variant-numeric:tabular-nums;font-size:30px;min-width:5ch}
+footer{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+@media (prefers-reduced-motion:reduce){.card,.bar i{transition:none}}
+
+/* ===== Tema: mismo look de Splits y Contratos (solo aspecto, no toca el funcionamiento) ===== */
+:root{--bg:#0a0a0c;--surface:#141417;--ink:#f3efe6;--muted:#9b978d;--line:#2b2b31;--accent:#d9a441;--accent-soft:rgba(217,164,65,.13);--warm:#f0c36a;--warm-soft:rgba(240,195,106,.14);--on-accent:#14110a;color-scheme:dark}
+body,.big,.big small,.streak b,.timer output{font-family:"Helvetica Neue",Arial,sans-serif}
+.big{font-weight:800;font-size:clamp(56px,10vw,96px);line-height:.92;letter-spacing:-.05em}
+.streak b{font-weight:800}
+.timer output{font-weight:700}
+button,a.btn{border-radius:8px}
+.card,.timer{border-radius:14px}
+input[type=url]{border-radius:8px;background:#0e0e11}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1 id="fecha"></h1>
+    <div class="big"><span id="n">0</span><small> / <span id="t">0</span> plataformas hoy</small></div>
+  </div>
+  <div class="streak"><b id="racha">0</b><span>días seguidos</span></div>
+</header>
+<div class="bar"><i id="barra"></i></div>
+<p class="hint" id="aviso"></p>
+<section id="lista"></section>
+
+<div class="timer">
+  <button id="tb">Iniciar temporizador</button>
+  <output id="tt">00:00</output>
+  <span class="hint">Opcional: mide cuánto escuchas hoy.</span>
+</div>
+
+<footer>
+  <button class="ghost" id="bk">Copiar respaldo</button>
+  <button class="ghost" id="rs">Restaurar respaldo</button>
+  <span class="hint">Tus datos se guardan solo en este navegador.</span>
+</footer>
+</main>
+
+<script>
+const PLAT=[
+ {id:'spotify',n:'Spotify',c:'#1db954',u:'https://open.spotify.com/playlist/7DtcBUYK7LsfEVfTwi4PRh'},
+ {id:'ytmusic',n:'YouTube Music',c:'#ff0033',u:'https://music.youtube.com/playlist?list=PLVDNgLfIyyI0'},
+ {id:'soundcloud',n:'SoundCloud',c:'#ff5500',u:'https://soundcloud.com/fabianjuglares/sets/fabian-martinez/s-0YtMt8CUccm'}
+];
+const KEY='rutina-escucha-v2';
+let S={links:{},done:{},secs:{}};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+PLAT.forEach(p=>{if(S.links[p.id]===undefined)S.links[p.id]=p.u});
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const dk=d=>{const x=d||new Date();return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const $=id=>document.getElementById(id);
+const today=()=>dk();
+const active=()=>PLAT.filter(p=>(S.links[p.id]||'').trim());
+const isDone=(id,d)=>(S.done[id]||[]).includes(d);
+
+function streak(){
+  const act=active();if(!act.length)return 0;
+  const full=d=>act.every(p=>isDone(p.id,d));
+  const d=new Date();let n=0;
+  if(!full(dk(d)))d.setDate(d.getDate()-1);
+  while(full(dk(d))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+
+function render(){
+  const d=today(),act=active();
+  $('fecha').textContent=new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
+  const list=$('lista');list.innerHTML='';
+  PLAT.forEach(p=>{
+    const link=(S.links[p.id]||'').trim(),done=link&&isDone(p.id,d);
+    const el=document.createElement('div');
+    el.className='card'+(done?' done':'');el.style.setProperty('--c',p.c);
+    el.innerHTML=`<div class="top"><span class="name">${p.n}</span>
+      <label class="chk"><input type="checkbox" ${done?'checked':''} ${link?'':'disabled'}> Escuchada hoy</label></div>
+      <div class="row"><input type="url" placeholder="Pega aquí el link de tu playlist en ${p.n}" value="${link.replace(/"/g,'&quot;')}">
+      <a class="btn" target="_blank" rel="noopener" href="${link||'#'}" aria-disabled="${link?'false':'true'}">Abrir playlist</a></div>`;
+    const inp=el.querySelector('input[type=url]');
+    inp.addEventListener('change',()=>{S.links[p.id]=inp.value.trim();save();render()});
+    el.querySelector('input[type=checkbox]').addEventListener('change',e=>{
+      const a=S.done[p.id]||(S.done[p.id]=[]);
+      const i=a.indexOf(d);
+      if(e.target.checked&&i<0)a.push(d);
+      if(!e.target.checked&&i>=0)a.splice(i,1);
+      save();render();
+    });
+    list.appendChild(el);
+  });
+  const n=act.filter(p=>isDone(p.id,d)).length;
+  $('n').textContent=n;$('t').textContent=act.length;
+  $('barra').style.width=(act.length?n/act.length*100:0)+'%';
+  $('racha').textContent=streak();
+  $('aviso').textContent=act.length?(n===act.length?'Rutina completa por hoy.':'Abre cada playlist, activa el orden aleatorio y escúchala con tu sesión iniciada.'):'Pega el link de tu playlist en al menos una plataforma.';
+  $('tt').textContent=fmt(S.secs[d]||0);
+}
+
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+let iv=null;
+$('tb').onclick=()=>{
+  if(iv){clearInterval(iv);iv=null;$('tb').textContent='Reanudar temporizador';save();return}
+  $('tb').textContent='Pausar temporizador';
+  iv=setInterval(()=>{const d=today();S.secs[d]=(S.secs[d]||0)+1;$('tt').textContent=fmt(S.secs[d]);if(S.secs[d]%15===0)save()},1000);
+};
+
+$('bk').onclick=async()=>{
+  const t=JSON.stringify(S);
+  try{await navigator.clipboard.writeText(t);alert('Respaldo copiado. Pégalo en un archivo de texto para guardarlo.')}
+  catch(e){prompt('Copia este respaldo:',t)}
+};
+$('rs').onclick=()=>{
+  const t=prompt('Pega aquí tu respaldo:');if(!t)return;
+  try{const o=JSON.parse(t);S=Object.assign({links:{},done:{},secs:{}},o);save();render()}
+  catch(e){alert('El respaldo no es válido.')}
+};
+
+render();
+setInterval(()=>{if($('fecha').dataset.d!==today()){$('fecha').dataset.d=today();render()}},60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Neo Calendar">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Neo Calendar</title>
+<style>
+:root{--bg:#0a0a0c;--card:#141417;--line:#2b2b31;--txt:#f3efe6;--mut:#9b978d;--acc:#d9a441;--bad:#ff6b6b;--ok:#6bd38a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 "Helvetica Neue",Arial,sans-serif}
+main{max-width:920px;margin:auto;padding:28px 16px 120px}
+h1{font-size:clamp(2.6rem,12vw,5rem);line-height:.92;margin:0 0 10px;font-weight:800;letter-spacing:-.04em}
+h1 span{display:block;font-size:.32em;font-weight:400;letter-spacing:0;color:var(--acc);margin-bottom:8px}
+.s{color:var(--mut);margin:0 0 18px;max-width:52ch}
+.tools{display:flex;gap:8px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h2{font-size:1.05rem;margin:0;font-weight:700}
+h2 i{font-style:normal;color:var(--acc);margin-right:8px}
+label{display:block;font-size:.82rem;color:var(--mut);margin:12px 0 0}
+input,select,textarea{width:100%;margin-top:4px;padding:10px 12px;background:#0e0e11;border:1px solid var(--line);border-radius:8px;color:var(--txt);font:inherit;font-size:16px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
+button{background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:12px 16px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--acc)}
+.ib{padding:7px 12px;font-size:.85rem;color:var(--mut)}
+.ib.on{color:var(--acc);border-color:var(--acc)}
+.pri{background:var(--acc);color:#14110a;border-color:var(--acc);font-weight:700;width:100%;margin-top:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 12px}
+.fl{display:none}.fl.open{display:block}
+.fl select{margin:0 0 8px}
+.ev{border-left:3px solid var(--acc)}.ev.paid{border-left-color:var(--ok)}
+.top{display:flex;justify-content:space-between;gap:8px}
+.name{font-weight:700;font-size:1.1rem}.meta{color:var(--mut);font-size:.85rem;margin-top:2px}
+.money{font-weight:700;color:var(--acc);white-space:nowrap;text-align:right}
+.tag{font-size:.72rem;color:var(--mut);font-weight:400}
+.acts{display:flex;gap:8px;margin-top:12px}
+.pay{flex:1;border-color:var(--acc);color:var(--acc)}
+.paid .pay{background:var(--ok);border-color:var(--ok);color:#0a1a10;font-weight:700}
+.del{color:var(--bad)}
+.mrow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);text-transform:capitalize}
+.mrow:last-child{border:0}
+.mrow b{color:var(--ok)}.tot{color:var(--acc);font-weight:800;font-size:1.2rem}
+.empty{color:var(--mut);text-align:center;padding:22px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border-radius:99px;padding:6px 12px;font-size:.85rem;color:var(--acc);border-color:var(--acc)}
+.fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:50%;border:0;font-size:34px;line-height:1;padding:0;color:#14110a;background:var(--acc);box-shadow:0 6px 24px rgba(217,164,65,.35)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:5}
+.ov.open{display:flex}
+.sheet{background:var(--card);width:100%;max-width:720px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));border:1px solid var(--line)}
+.sh{display:flex;justify-content:space-between;align-items:center}
+.sh b{font-size:1.1rem}
+textarea{height:110px;font-size:12px}
+.note{color:var(--mut);font-size:.82rem;margin:10px 0 0}
+</style>
+</head>
+<body>
+<main>
+<h1><span>Agenda de conciertos</span>Neo Calendar</h1>
+<p class="s">Tus conciertos, tus pagos y tu historial, siempre a la mano.</p>
+<div class="tools"><button class="ib" id="bf">Filtros</button><button class="ib" id="bm">Respaldo</button></div>
+
+<div class="fl card" id="fl">
+<select id="fg"></select><select id="fp"><option value="">Todos los pagos</option><option value="paid">Pagados</option><option value="pend">Pendientes</option></select>
+<select id="fm"></select><button class="ib" id="fc">Limpiar filtros</button>
+</div>
+
+<div class="bar"><h2><i>1</i><span id="lt">Próximos</span></h2><button class="ib" id="tog"></button></div>
+<div id="list"></div>
+
+<div class="bar"><h2><i>2</i>Pagos recibidos por mes</h2></div>
+<div class="card" id="months"></div>
+</main>
+
+<button class="fab" id="fab" aria-label="Nuevo evento">+</button>
+
+<div class="ov" id="ovn"><div class="sheet">
+<div class="sh"><b>Nuevo concierto</b><button class="ib" data-close>Cerrar</button></div>
+<label>Banda o grupo</label><input id="g" placeholder="Escribe el nombre" autocomplete="off">
+<div class="chips" id="chips"></div>
+<div class="two"><div><label>Día</label><input type="date" id="d"></div><div><label>Hora</label><input type="time" id="t" value="20:00"></div></div>
+<label>Lugar</label><input id="p" placeholder="Ej: Club Social, Cali">
+<label>Pago (COP)</label><input type="number" id="m" inputmode="numeric" placeholder="500000">
+<p class="note" id="nn"></p>
+<button class="pri" id="add">Guardar concierto</button>
+</div></div>
+
+<div class="ov" id="ovb"><div class="sheet">
+<div class="sh"><b>Respaldo</b><button class="ib" data-close>Cerrar</button></div>
+<p class="note">Copia tu respaldo y guárdalo en Notas. Para restaurar, pega el texto y toca Restaurar.</p>
+<textarea id="bt"></textarea>
+<div class="two" style="margin-top:10px"><button id="bc">Copiar</button><button id="br">Restaurar</button></div>
+<p class="note" id="bn"></p>
+</div></div>
+
+<script>
+const KEY="neo-calendar-v2",$=id=>document.getElementById(id);
+let S={ev:[],gr:[]},past=false,armed=null,mem=null;
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){if(mem)return mem}return{ev:[],gr:[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){mem=S}}
+const cop=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(n||0);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const when=e=>new Date(e.d+"T"+(e.t||"00:00"));
+const mname=k=>new Date(k+"-15T12:00").toLocaleDateString("es-CO",{month:"long",year:"numeric"});
+const dname=e=>when(e).toLocaleDateString("es-CO",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+const today=()=>{const n=new Date();return new Date(n-n.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+
+function open(id){$(id).classList.add("open")}
+function closeAll(){document.querySelectorAll(".ov").forEach(o=>o.classList.remove("open"))}
+function init(){
+ S=load();S.gr=S.gr||[];
+ $("fab").onclick=()=>{$("d").value=$("d").value||today();$("nn").textContent="";chips();open("ovn")};
+ document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeAll);
+ document.querySelectorAll(".ov").forEach(o=>o.onclick=e=>{if(e.target===o)closeAll()});
+ $("add").onclick=add;
+ $("bf").onclick=()=>$("fl").classList.toggle("open");
+ ["fg","fp","fm"].forEach(i=>$(i).onchange=render);
+ $("fc").onclick=()=>{$("fg").value=$("fp").value=$("fm").value="";render()};
+ $("tog").onclick=()=>{past=!past;render()};
+ $("bm").onclick=()=>{$("bt").value=JSON.stringify(S);$("bn").textContent="";open("ovb")};
+ $("bc").onclick=()=>{$("bt").select();try{navigator.clipboard.writeText($("bt").value);$("bn").textContent="Copiado."}catch(e){$("bn").textContent="Mantén presionado el texto y copia."}};
+ $("br").onclick=()=>{try{const o=JSON.parse($("bt").value);if(!Array.isArray(o.ev))throw 0;S={ev:o.ev,gr:o.gr||[]};save();render();closeAll()}catch(e){$("bn").textContent="Respaldo no válido."}};
+ render();
+ if("serviceWorker" in navigator)try{navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
+}
+function chips(){
+ const g=[...new Set([...S.gr,...S.ev.map(e=>e.g)])].sort();
+ $("chips").innerHTML=g.map(x=>`<button class="chip" data-g="${esc(x)}">${esc(x)}</button>`).join("");
+ document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{$("g").value=b.dataset.g});
+}
+function add(){
+ const g=$("g").value.trim(),d=$("d").value;
+ if(!g||!d){$("nn").textContent="Falta el grupo o el día.";return}
+ if(!S.gr.includes(g))S.gr.push(g);
+ S.ev.push({id:Date.now(),g,d,t:$("t").value,p:$("p").value.trim(),m:+$("m").value||0,paid:false});
+ $("p").value=$("m").value=$("g").value="";save();render();closeAll();
+}
+function render(){
+ const now=new Date(),paidEv=S.ev.filter(e=>e.paid),tot={};
+ paidEv.forEach(e=>{const k=e.d.slice(0,7);tot[k]=(tot[k]||0)+e.m});
+ const ks=Object.keys(tot).sort().reverse(),all=ks.reduce((a,k)=>a+tot[k],0);
+ $("months").innerHTML=ks.length?ks.map(k=>`<div class="mrow"><span>${mname(k)}</span><b>${cop(tot[k])}</b></div>`).join("")+`<div class="mrow"><span>Total acumulado</span><span class="tot">${cop(all)}</span></div>`:'<div class="empty" style="padding:6px">Aún no has marcado pagos.</div>';
+ const gs=[...new Set([...S.gr,...S.ev.map(e=>e.g)])].sort(),mk=[...new Set(S.ev.map(e=>e.d.slice(0,7)))].sort().reverse();
+ const cg=$("fg").value,cm=$("fm").value;
+ $("fg").innerHTML='<option value="">Todos los grupos</option>'+gs.map(g=>`<option${g===cg?" selected":""}>${esc(g)}</option>`).join("");
+ $("fm").innerHTML='<option value="">Todos los meses</option>'+mk.map(k=>`<option value="${k}"${k===cm?" selected":""}>${mname(k)}</option>`).join("");
+ const fg=$("fg").value,fp=$("fp").value,fm=$("fm").value;
+ $("bf").classList.toggle("on",!!(fg||fp||fm));
+ const l=S.ev.filter(e=>(!fg||e.g===fg)&&(!fm||e.d.startsWith(fm))&&(!fp||(fp==="paid")===e.paid));
+ const up=l.filter(e=>when(e)>=now).sort((a,b)=>when(a)-when(b)),ps=l.filter(e=>when(e)<now).sort((a,b)=>when(b)-when(a));
+ const sh=past?ps:up;
+ $("lt").textContent=past?"Eventos pasados":"Próximos";
+ $("tog").textContent=past?"← Ver próximos":`Ver pasados (${ps.length})`;
+ $("list").innerHTML=sh.length?sh.map(card).join(""):`<div class="empty">${past?"No hay eventos pasados.":"No hay conciertos próximos. Toca + para agregar."}</div>`;
+ document.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>{const e=S.ev.find(x=>x.id==b.dataset.pay);e.paid=!e.paid;save();render()});
+ document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(armed==b.dataset.del){S.ev=S.ev.filter(x=>x.id!=armed);armed=null;save()}else armed=b.dataset.del;render()});
+}
+function card(e){return `<article class="card ev${e.paid?" paid":""}"><div class="top"><div><div class="name">${esc(e.g)}</div><div class="meta">${dname(e)} · ${esc(e.t||"")}</div><div class="meta">📍 ${esc(e.p||"Sin lugar")}</div></div><div class="money">${cop(e.m)}<div class="tag">${e.paid?"Pagado":"Pendiente"}</div></div></div><div class="acts"><button class="pay" data-pay="${e.id}">${e.paid?"✓ Pago recibido":"Marcar como pagado"}</button><button class="del" data-del="${e.id}">${armed==e.id?"¿Seguro?":"Borrar"}</button></div></article>`}
+init();
+</script>
+</body>
+</html>

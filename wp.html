@@ -198,7 +198,7 @@ textarea{min-height:84px}
     <div><label class="f" for="cc">Código de país <button type="button" class="tip tl" data-t="Se agrega a los números de 10 dígitos que cargues sin código. Colombia es 57." aria-label="Ayuda">?</button></label><input id="cc" inputmode="numeric" list="ccl"><datalist id="ccl"><option value="57">Colombia</option><option value="52">México</option><option value="54">Argentina</option><option value="56">Chile</option><option value="51">Perú</option><option value="593">Ecuador</option><option value="58">Venezuela</option><option value="591">Bolivia</option><option value="598">Uruguay</option><option value="595">Paraguay</option><option value="506">Costa Rica</option><option value="507">Panamá</option><option value="502">Guatemala</option><option value="1">EE. UU. / Canadá</option><option value="34">España</option></datalist></div>
     <div><label class="f" for="lim">Límite por día <button type="button" class="tip tl" data-t="Te avisa antes de que envíes demasiados mensajes en un día. Es una guía tuya: no garantiza que WhatsApp lo considere seguro." aria-label="Ayuda">?</button></label><input id="lim" type="number" min="1"></div>
     <div><label class="f" for="pau">Pausa (segundos) <button type="button" class="tip tl" data-t="Espera obligatoria entre un envío y el siguiente en el modo cola." aria-label="Ayuda">?</button></label><input id="pau" type="number" min="0" max="300"></div>
-    <div><label class="f" for="opin">Abrir chats en <button type="button" class="tip tr" data-t="WhatsApp Web abre el chat directo en el navegador (debes tener la sesión iniciada). wa.me abre la app o, en el computador, una página intermedia con botones." aria-label="Ayuda">?</button></label><select id="opin"><option value="web">WhatsApp Web (navegador)</option><option value="wa">wa.me (app o página intermedia)</option></select></div>
+    <div><label class="f" for="opin">Abrir chats en <button type="button" class="tip tr" data-t="WhatsApp Web abre el chat directo en el navegador (debes tener la sesión iniciada). wa.me abre la app o, en el computador, una página intermedia con botones. «App de WhatsApp» abre la app al instante en el celular (sin pasos extra)." aria-label="Ayuda">?</button></label><select id="opin"><option value="web">WhatsApp Web (navegador)</option><option value="wa">wa.me (app o página intermedia)</option><option value="app">App de WhatsApp (directo en el celular)</option></select></div>
   </div>
   <div class="vars">
     <div><label class="f" for="vEv">{evento} <button type="button" class="tip tl" data-t="Datos que se reemplazan en todos tus mensajes donde escribas {evento}, {fecha} o {link}." aria-label="Ayuda">?</button></label><input id="vEv" placeholder="Ej: Concierto en Cali"></div>
@@ -290,7 +290,7 @@ let S=defaults(),shown=PAGE,qOmit=true,coolUntil=0,moreOpen=false;const openT=ne
 function adopt(o){
   S=Object.assign(defaults(),o||{});
   S.vars=Object.assign({evento:'',fecha:'',link:''},S.vars);
-  if(S.openIn!=='wa')S.openIn='web';S.qMode=!!S.qMode;
+  if(S.openIn!=='wa'&&S.openIn!=='app')S.openIn='web';S.qMode=!!S.qMode;
   if(!Array.isArray(S.contacts))S.contacts=[];
   if(!Array.isArray(S.tags)||!S.tags.length)S.tags=defaults().tags;
   if(!S.tags.some(t=>t.id==='nm'))S.tags.push({id:'nm',l:'No molestar',pl:'no molestar'});
@@ -421,7 +421,8 @@ function doSend(c){
   if((S.daily[k]||0)>=S.limit&&!confirm('Ya llegaste a tu límite de hoy ('+S.limit+'). Enviar muchos mensajes seguidos puede hacer que WhatsApp limite tu número. ¿Quieres seguir?'))return false;
   const m=fill(c);
   if(pendingVars(m)&&!confirm('Tu mensaje tiene datos sin completar ({evento}, {fecha} o {link}). ¿Enviarlo así?'))return false;
-  window.open((S.openIn==='wa'?'https://wa.me/'+c.p+'?text=':'https://web.whatsapp.com/send?phone='+c.p+'&text=')+encodeURIComponent(m),'wa');
+  if(S.openIn==='app')window.location.href='whatsapp://send?phone='+c.p+'&text='+encodeURIComponent(m);
+  else window.open((S.openIn==='wa'?'https://wa.me/'+c.p+'?text=':'https://web.whatsapp.com/send?phone='+c.p+'&text=')+encodeURIComponent(m),'wa');
   S.lastSend={p:c.p,sent:c.sent,last:c.last,isNew:c.isNew,day:k};
   c.sent++;c.last=Date.now();c.isNew=false;S.daily[k]=(S.daily[k]||0)+1;
   if(S.vars.link&&!S.linkHist.includes(S.vars.link)){S.linkHist.unshift(S.vars.link);S.linkHist=S.linkHist.slice(0,8)}
@@ -680,7 +681,7 @@ $('#mBtn').onclick=e=>{e.stopPropagation();setMenu($('#mDD').hidden)};
 $('#mDD').addEventListener('click',e=>{if(e.target.closest('button'))setMenu(false)});
 $('#bAdv').onclick=()=>{const a=$('#adv');a.hidden=!a.hidden;$('#bAdv').setAttribute('aria-expanded',!a.hidden);$('#bAdv').classList.toggle('on',!a.hidden)};
 $('#bMore').onclick=()=>{moreOpen=!moreOpen;render()};
-$('#opin').addEventListener('change',e=>{S.openIn=e.target.value==='wa'?'wa':'web';saveNow()});
+$('#opin').addEventListener('change',e=>{S.openIn=['wa','app'].includes(e.target.value)?e.target.value:'web';saveNow()});
 $('#bQ').onclick=()=>{
   if(S.qMode&&S.q&&!confirm('Hay una cola en curso. Si desactivas el modo cola se detiene. ¿Continuar?'))return;
   S.qMode=!S.qMode;if(!S.qMode){S.q=null;coolUntil=0}saveNow();render();

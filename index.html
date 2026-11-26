@@ -331,7 +331,8 @@ pintarModulos();
 document.getElementById("orden").onclick=()=>{orden=[];save("hub_orden",orden);pintarModulos()};
 
 /* ===== Artistas: lee las carpetas dentro de "Acceder a mis Artistas" ===== */
-const ART_RESPALDO=[];
+const ART_RESPALDO=["LOS BETAMANES"];
+const ART_WEB=[{n:"LOS BETAMANES",u:"https://losbetamanes.github.io/StandUpMelody/"}];
 const el=id=>document.getElementById(id);
 let carpeta=null;
 const LOCAL=!window.showDirectoryPicker; /* Safari/Firefox: sin acceso directo a carpetas */
@@ -341,6 +342,7 @@ async function guardarCarpeta(h){try{const db=await dbArt();await new Promise((r
 async function leerCarpeta(){try{const db=await dbArt();return await new Promise((res,rej)=>{const q=db.transaction("h").objectStore("h").get("artistas");q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}catch(e){return null}}
 
 function pintarArtistas(items,msg,baseOv){
+  items=[...ART_WEB.map(a=>({n:a.n,u:a.u,tieneIndex:true})),...items.filter(x=>!ART_WEB.some(a=>a.n===x.n))];
   el("estadoArt").textContent=msg;
   const base=baseOv||(carpeta?carpeta.name:MODULOS.find(m=>m.lista).h);
   const ul=el("listaArt");ul.innerHTML="";
@@ -348,7 +350,7 @@ function pintarArtistas(items,msg,baseOv){
     const li=document.createElement("li");
     const fila=document.createElement(it.tieneIndex?"a":"div");
     fila.className="artista";
-    if(it.tieneIndex){fila.href=encodeURI(base+"/"+it.n+"/index.html");fila.target="_blank";fila.rel="noopener"}
+    if(it.tieneIndex){fila.href=it.u||encodeURI(base+"/"+it.n+"/index.html");fila.target="_blank";fila.rel="noopener"}
     const av=document.createElement("span");av.className="av";av.textContent=it.n.charAt(0).toUpperCase();
     const nom=document.createElement("span");nom.className="nom";nom.textContent=it.n;
     fila.append(av,nom);
@@ -357,7 +359,7 @@ function pintarArtistas(items,msg,baseOv){
   });
 }
 function mostrarConectar(msg,txt){
-  el("estadoArt").textContent=msg;el("listaArt").innerHTML="";
+  pintarArtistas([],msg);
   const b=el("btnConectar");b.textContent=txt;b.hidden=false;
 }
 async function escanear(){
